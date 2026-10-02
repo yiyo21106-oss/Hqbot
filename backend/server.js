@@ -1,6 +1,7 @@
-const crypto = require("crypto");
 const express = require("express");
 const cors = require("cors");
+const crypto = require("crypto");
+const { Authflow } = require("prismarine-auth");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -8,148 +9,80 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-/*
-  ==========================================
-              HQBOT BACKEND
-  ==========================================
-
-  This is the first backend foundation for
-  the Hqbot Minecraft bot dashboard.
-
-  Website
-      ↓
-  Hqbot API
-      ↓
-  Bot Manager
-      ↓
-  Minecraft Bedrock bots
-
-  Minecraft connection and automation will
-  be added in the next stages.
-*/
-
-const bots = new Map();
-
-/* ==========================================
-   HOME / HEALTH CHECK
-   ========================================== */
+const loginSessions = new Map();
 
 app.get("/", (req, res) => {
   res.json({
     name: "Hqbot",
-    status: "online",
-    message: "Hqbot backend is running"
+    status: "online"
   });
 });
 
-/* ==========================================
-   GET ALL BOTS
-   ========================================== */
+app.post("/api/microsoft/login", async (req, res) => {
+  const sessionId = crypto.randomUUID();
 
-app.get("/api/bots", (req, res) => {
-  const botList = Array.from(bots.values()).map((bot) => ({
-    id: bot.id,
-    name: bot.name,
-    status: bot.status,
-    command: bot.command || null
-  }));
-
-  res.json(botList);
-});
-
-/* ==========================================
-   CREATE A BOT
-   ========================================== */
-
-app.post("/api/bots", (req, res) => {
-  const { name } = req.body;
-
-  if (!name || typeof name !== "string") {
-    return res.status(400).json({
-      error: "Bot name is required"
-    });
-  }
-
-  const id = crypto.randomUUID();
-
-  const bot = {
-    id: id,
-    name: name.trim(),
-    status: "offline",
-    command: null
-  };
-
-  bots.set(id, bot);
-
-  console.log(`Bot created: ${bot.name}`);
+  loginSessions.set(sessionId, {
+    status: "waiting",
+    code: null,
+    verificationUri: null
+  });
 
   res.json({
-    success: true,
-    bot: bot
+    sessionId,
+    status: "starting"
   });
+
+  try {
+    const auth = new Authflow(
+      `hqbot-${sessionId}`,
+      "./auth-cache",
+      undefined,
+      (data) => {
+        const session = loginSessions.get(sessionId);
+
+        if (!session) return;
+
+        session.code = data.user_code;
+        session.verificationUri = data.verification_uri;
+        session.message = data.message;
+        session.status = "waiting_for_login";
+
+        console.log("Microsoft device code:", data.user_code);
+        console.log("Login:", data.verification_uri);
+      }
+    );
+
+    await auth.getXboxToken();
+
+    const session = loginSessions.get(sessionId);
+
+    if (session) {
+      session.status = "connected";
+    }
+  } catch (error) {
+    console.error("Microsoft login error:", error);
+
+    const session = loginSessions.get(sessionId);
+
+    if (session) {
+      session.status = "error";
+      session.error = error.message;
+    }
+  }
 });
 
-/* ==========================================
-   SEND COMMAND TO A BOT
-   ========================================== */
+app.get("/api/microsoft/login/:sessionId", (req, res) => {
+  const session = loginSessions.get(req.params.sessionId);
 
-app.post("/api/bots/:id/command", (req, res) => {
-  const bot = bots.get(req.params.id);
-  const { command } = req.body;
-
-  if (!bot) {
+  if (!session) {
     return res.status(404).json({
-      error: "Bot not found"
+      error: "Login session not found"
     });
   }
 
-  if (!command || typeof command !== "string") {
-    return res.status(400).json({
-      error: "Command is required"
-    });
-  }
-
-  bot.command = command.trim();
-
-  console.log(`[${bot.name}] Command: ${bot.command}`);
-
-  res.json({
-    success: true,
-    bot: bot.name,
-    command: bot.command
-  });
+  res.json(session);
 });
-
-/* ==========================================
-   DELETE A BOT
-   ========================================== */
-
-app.delete("/api/bots/:id", (req, res) => {
-  const bot = bots.get(req.params.id);
-
-  if (!bot) {
-    return res.status(404).json({
-      error: "Bot not found"
-    });
-  }
-
-  bots.delete(req.params.id);
-
-  console.log(`Bot deleted: ${bot.name}`);
-
-  res.json({
-    success: true,
-    message: "Bot deleted"
-  });
-});
-
-/* ==========================================
-   START SERVER
-   ========================================== */
 
 app.listen(PORT, () => {
-  console.log("================================");
-  console.log("        HQBOT BACKEND");
-  console.log("================================");
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Hqbot backend running on port ${PORT}`);
 });
