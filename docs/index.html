@@ -818,8 +818,6 @@ button:hover {
       class="page active"
     >
 
-      <!-- MAIN STATS -->
-
       <div class="grid">
 
         <div class="card">
@@ -888,8 +886,6 @@ button:hover {
       </div>
 
 
-      <!-- BOT STATUS -->
-
       <div class="section">
 
         <div class="section-title">
@@ -913,21 +909,15 @@ button:hover {
 
           <div class="bot-actions">
 
-            <button
-              onclick="showPage('bots')"
-            >
+            <button onclick="showPage('bots')">
               🤖 Manage Bot
             </button>
 
-            <button
-              onclick="showPage('console')"
-            >
+            <button onclick="showPage('console')">
               📟 Open Console
             </button>
 
-            <button
-              onclick="showPage('inventory')"
-            >
+            <button onclick="showPage('inventory')">
               🎒 Inventory
             </button>
 
@@ -937,8 +927,6 @@ button:hover {
 
       </div>
 
-
-      <!-- ACCOUNT INFORMATION -->
 
       <div class="section">
 
@@ -1231,9 +1219,7 @@ button:hover {
           onkeydown="handleCommandKey(event)"
         >
 
-        <button
-          onclick="sendCommand()"
-        >
+        <button onclick="sendCommand()">
           Send
         </button>
 
@@ -1347,8 +1333,16 @@ const HQBOT_API =
    STATE
 ========================================================= */
 
+/*
+   IMPORTANT:
+   localStorage keeps the Hqbot login after the browser
+   is closed/reopened.
+
+   sessionStorage was the reason you were being logged out.
+*/
+
 let authToken =
-  sessionStorage.getItem(
+  localStorage.getItem(
     "hqbot_token"
   ) || null;
 
@@ -1506,7 +1500,11 @@ async function login() {
     authToken =
       data.token;
 
-    sessionStorage.setItem(
+    /*
+      FIX:
+      Save the token in localStorage instead of sessionStorage.
+    */
+    localStorage.setItem(
       "hqbot_token",
       authToken
     );
@@ -1898,8 +1896,6 @@ async function loadPlan() {
 
     }
 
-    /* MAIN DASHBOARD */
-
     document.getElementById(
       "dashPlan"
     ).textContent =
@@ -1914,9 +1910,6 @@ async function loadPlan() {
       "dashDuration"
     ).textContent =
       duration;
-
-
-    /* ACCOUNT PAGE */
 
     document.getElementById(
       "accountPlan"
@@ -1939,9 +1932,6 @@ async function loadPlan() {
       formatExpiration(
         data.expiresAt
       );
-
-
-    /* DASHBOARD ACCOUNT INFO */
 
     const dashboardPlan =
       document.getElementById(
@@ -2395,7 +2385,7 @@ function startBotPolling() {
 
 
 /* =========================================================
-   MICROSOFT
+   MICROSOFT / XBOX LOGIN
 ========================================================= */
 
 async function startMicrosoftLogin() {
@@ -2420,11 +2410,25 @@ async function startMicrosoftLogin() {
       "openMicrosoftButton"
     );
 
+  if (microsoftPollTimer) {
+
+    clearInterval(
+      microsoftPollTimer
+    );
+
+    microsoftPollTimer =
+      null;
+
+  }
+
   microsoftSessionId =
     null;
 
   microsoftVerificationUri =
     null;
+
+  code.textContent =
+    "----";
 
   code.style.display =
     "none";
@@ -2461,6 +2465,11 @@ async function startMicrosoftLogin() {
 
     }
 
+    /*
+      The backend may return the device code
+      immediately OR during polling.
+    */
+
     const userCode =
       data.user_code ||
       data.userCode ||
@@ -2469,7 +2478,8 @@ async function startMicrosoftLogin() {
     microsoftVerificationUri =
       data.verification_uri ||
       data.verificationUri ||
-      data.url;
+      data.url ||
+      null;
 
     if (userCode) {
 
@@ -2481,10 +2491,6 @@ async function startMicrosoftLogin() {
 
     }
 
-    text.textContent =
-      data.message ||
-      "Open Microsoft and enter the code shown above.";
-
     if (
       microsoftVerificationUri
     ) {
@@ -2493,6 +2499,20 @@ async function startMicrosoftLogin() {
         "block";
 
     }
+
+    text.textContent =
+      data.message ||
+      (
+        userCode
+          ? "Enter the code above on Microsoft."
+          : "Waiting for Microsoft sign-in information..."
+      );
+
+    /*
+      Start checking the backend every 3 seconds.
+    */
+
+    await checkMicrosoftLogin();
 
     startMicrosoftPolling();
 
@@ -2518,15 +2538,23 @@ async function startMicrosoftLogin() {
 function openMicrosoftPage() {
 
   if (
-    microsoftVerificationUri
+    !microsoftVerificationUri
   ) {
 
-    window.open(
-      microsoftVerificationUri,
-      "_blank"
-    );
+    document.getElementById(
+      "microsoftText"
+    ).textContent =
+      "Microsoft verification page is not available yet.";
+
+    return;
 
   }
+
+  window.open(
+    microsoftVerificationUri,
+    "_blank",
+    "noopener,noreferrer"
+  );
 
 }
 
@@ -2573,15 +2601,93 @@ async function checkMicrosoftLogin() {
         "microsoftText"
       );
 
-    if (
+    const code =
+      document.getElementById(
+        "microsoftCode"
+      );
+
+    const openButton =
+      document.getElementById(
+        "openMicrosoftButton"
+      );
+
+
+    /*
+      DEVICE CODE
+    */
+
+    const userCode =
+      data.user_code ||
+      data.userCode ||
+      data.code;
+
+    if (userCode) {
+
+      code.textContent =
+        userCode;
+
+      code.style.display =
+        "block";
+
+    }
+
+
+    /*
+      MICROSOFT VERIFICATION URL
+    */
+
+    const verificationUri =
+      data.verification_uri ||
+      data.verificationUri ||
+      data.url;
+
+    if (verificationUri) {
+
+      microsoftVerificationUri =
+        verificationUri;
+
+      openButton.style.display =
+        "block";
+
+    }
+
+
+    /*
+      MESSAGE
+    */
+
+    if (data.message) {
+
+      text.textContent =
+        data.message;
+
+    }
+
+
+    /*
+      SUCCESS STATES
+    */
+
+    const connected =
       data.status === "success" ||
       data.status === "connected" ||
-      data.connected === true
-    ) {
+      data.status === "authenticated" ||
+      data.status === "complete" ||
+      data.connected === true ||
+      data.authenticated === true;
 
-      clearInterval(
-        microsoftPollTimer
-      );
+    if (connected) {
+
+      if (microsoftPollTimer) {
+
+        clearInterval(
+          microsoftPollTimer
+        );
+
+        microsoftPollTimer =
+          null;
+
+      }
 
       text.textContent =
         "Microsoft account connected successfully! Starting bot...";
@@ -2601,21 +2707,34 @@ async function checkMicrosoftLogin() {
 
     }
 
+
+    /*
+      ERROR / EXPIRED STATES
+    */
+
     if (
       data.status === "error" ||
-      data.error
+      data.status === "expired" ||
+      data.failed === true
     ) {
 
-      clearInterval(
-        microsoftPollTimer
-      );
+      if (microsoftPollTimer) {
+
+        clearInterval(
+          microsoftPollTimer
+        );
+
+        microsoftPollTimer =
+          null;
+
+      }
 
       text.textContent =
-        "Microsoft login error: " +
-        (
-          data.error ||
-          "Unknown error"
-        );
+        data.message ||
+        data.error ||
+        "Microsoft login failed.";
+
+      return;
 
     }
 
@@ -2651,6 +2770,12 @@ function closeMicrosoftModal() {
       null;
 
   }
+
+  microsoftSessionId =
+    null;
+
+  microsoftVerificationUri =
+    null;
 
 }
 
@@ -3034,7 +3159,11 @@ async function logout() {
   currentUser =
     null;
 
-  sessionStorage.removeItem(
+  /*
+    Explicit logout removes the persistent token.
+  */
+
+  localStorage.removeItem(
     "hqbot_token"
   );
 
@@ -3045,6 +3174,17 @@ async function logout() {
     );
 
     botStatusTimer =
+      null;
+
+  }
+
+  if (microsoftPollTimer) {
+
+    clearInterval(
+      microsoftPollTimer
+    );
+
+    microsoftPollTimer =
       null;
 
   }
@@ -3084,7 +3224,7 @@ async function checkExistingSession() {
     authToken =
       null;
 
-    sessionStorage.removeItem(
+    localStorage.removeItem(
       "hqbot_token"
     );
 
