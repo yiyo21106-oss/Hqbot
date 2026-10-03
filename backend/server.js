@@ -82,17 +82,6 @@ const loginSessions = new Map(
   )
 );
 
-/*
-  Activation keys are stored like:
-
-  {
-    "HQ-ABC123...": {
-      "type": "monthly",
-      "createdAt": 123456789
-    }
-  }
-*/
-
 const activationKeys = new Map(
   Object.entries(
     loadJSON(KEYS_FILE, {})
@@ -235,21 +224,6 @@ function saveActivationKeys() {
   );
 }
 
-/*
-  Every generated key is independent.
-
-  You can generate:
-
-  Monthly Key A
-  Monthly Key B
-  Monthly Key C
-  Lifetime Key A
-  Lifetime Key B
-  etc.
-
-  They do NOT overwrite each other.
-*/
-
 /* =========================================================
    PLAN SYSTEM
    ========================================================= */
@@ -299,7 +273,8 @@ function requireActivePlan(req, res) {
 
   if (!username) {
     res.status(401).json({
-      error: "You must login first."
+      error:
+        "You must login first."
     });
 
     return null;
@@ -310,7 +285,8 @@ function requireActivePlan(req, res) {
 
   if (!user) {
     res.status(401).json({
-      error: "Account not found."
+      error:
+        "Account not found."
     });
 
     return null;
@@ -370,10 +346,6 @@ app.post(
       });
     }
 
-    /*
-      Find the exact key.
-    */
-
     const keyData =
       activationKeys.get(
         activationKey
@@ -386,23 +358,12 @@ app.post(
       });
     }
 
-    /*
-      The key is consumed ONLY after
-      successful registration.
-    */
-
     const plan =
       keyData.type;
 
     const now = Date.now();
 
     let expiresAt = null;
-
-    /*
-      IMPORTANT:
-      The 30-day timer starts HERE,
-      when the person uses the key.
-    */
 
     if (plan === "monthly") {
       expiresAt =
@@ -441,20 +402,11 @@ app.post(
       Object.fromEntries(users)
     );
 
-    /*
-      Delete the used activation key.
-      This makes each key single-use.
-    */
-
     activationKeys.delete(
       activationKey
     );
 
     saveActivationKeys();
-
-    /*
-      Automatically log the user in.
-    */
 
     const token =
       createLoginToken(username);
@@ -516,12 +468,6 @@ app.post(
           "Invalid username or password."
       });
     }
-
-    /*
-      No automatic expiration of the login session.
-
-      The user stays logged in until Logout.
-    */
 
     const token =
       createLoginToken(username);
@@ -810,6 +756,567 @@ app.get(
 );
 
 /* =========================================================
+   INVENTORY HELPERS
+   ========================================================= */
+
+/*
+  Bedrock player inventory:
+
+  0 - 8   = HOTBAR
+  9 - 35  = MAIN INVENTORY
+
+  We NEVER send a drop request for 0 - 8.
+*/
+
+const HOTBAR_START = 0;
+const HOTBAR_END = 8;
+
+const MAIN_INVENTORY_START = 9;
+const MAIN_INVENTORY_END = 35;
+
+function isNonEmptyItem(item) {
+  if (!item) {
+    return false;
+  }
+
+  if (
+    Number(item.network_id || 0) !== 0
+  ) {
+    return true;
+  }
+
+  if (
+    Number(item.network_id || 0) === 0 &&
+    Number(item.count || 0) > 0
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function getItemCount(item) {
+  return Number(
+    item?.count || 0
+  );
+}
+
+function getItemStackId(item) {
+  /*
+    Bedrock-protocol uses the stack ID
+    supplied by the server.
+
+    Different protocol versions expose
+    it slightly differently, so accept
+    the common field names.
+  */
+
+  if (
+    item &&
+    item.stack_id !== undefined
+  ) {
+    return Number(
+      item.stack_id
+    );
+  }
+
+  if (
+    item &&
+    item.stackId !== undefined
+  ) {
+    return Number(
+      item.stackId
+    );
+  }
+
+  return 0;
+}
+
+function normalizeInventoryItem(
+  item,
+  slot
+) {
+  if (!item) {
+    return {
+      slot,
+      empty: true
+    };
+  }
+
+  return {
+    slot,
+
+    empty:
+      !isNonEmptyItem(item),
+
+    network_id:
+      Number(
+        item.network_id || 0
+      ),
+
+    count:
+      getItemCount(item),
+
+    stack_id:
+      getItemStackId(item),
+
+    metadata:
+      item
+  };
+}
+
+/* =========================================================
+   SAVE INVENTORY PACKET
+   ========================================================= */
+
+function attachInventoryListeners(
+  bot,
+  active
+) {
+  /*
+    Full inventory update.
+  */
+
+  bot.on(
+    "inventory_content",
+    (packet) => {
+      if (!packet) {
+        return;
+      }
+
+      /*
+        Window 0 = player inventory.
+      */
+
+      if (
+        Number(packet.window_id) !== 0
+      ) {
+        return;
+      }
+
+      const input =
+        Array.isArray(packet.input)
+          ? packet.input
+          : [];
+
+      active.inventory =
+        input.map(
+          (item, slot) =>
+            normalizeInventoryItem(
+              item,
+              slot
+            )
+        );
+
+      console.log(
+        `[${active.username}] Inventory received: ${active.inventory.length} slots`
+      );
+    }
+  );
+
+  /*
+    Individual inventory slot update.
+  */
+
+  bot.on(
+    "inventory_slot",
+    (packet) => {
+      if (!packet) {
+        return;
+      }
+
+      if (
+        Number(packet.window_id) !== 0
+      ) {
+        return;
+      }
+
+      const slot =
+        Number(packet.slot);
+
+      if (
+        slot < 0 ||
+        slot > 35
+      ) {
+        return;
+      }
+
+      if (
+        !Array.isArray(
+          active.inventory
+        )
+      ) {
+        active.inventory = [];
+      }
+
+      active.inventory[slot] =
+        normalizeInventoryItem(
+          packet.item,
+          slot
+        );
+    }
+  );
+}
+
+/* =========================================================
+   DROP ONE MAIN INVENTORY SLOT
+   ========================================================= */
+
+function dropMainInventorySlot(
+  active,
+  slot
+) {
+  if (
+    !active ||
+    !active.bot
+  ) {
+    throw new Error(
+      "Bot is not online."
+    );
+  }
+
+  slot =
+    Number(slot);
+
+  /*
+    HARD PROTECTION:
+
+    0-8 = hotbar
+
+    These slots are rejected
+    before ANY packet is created.
+  */
+
+  if (
+    slot >= HOTBAR_START &&
+    slot <= HOTBAR_END
+  ) {
+    throw new Error(
+      "Hotbar slots cannot be dropped."
+    );
+  }
+
+  /*
+    Only 9-35 are allowed.
+  */
+
+  if (
+    slot <
+      MAIN_INVENTORY_START ||
+    slot >
+      MAIN_INVENTORY_END
+  ) {
+    throw new Error(
+      "Invalid main inventory slot."
+    );
+  }
+
+  const entry =
+    active.inventory?.[slot];
+
+  if (
+    !entry ||
+    entry.empty
+  ) {
+    return false;
+  }
+
+  const item =
+    entry.metadata;
+
+  const count =
+    getItemCount(item);
+
+  if (count <= 0) {
+    return false;
+  }
+
+  const stackId =
+    getItemStackId(item);
+
+  /*
+    Bedrock item_stack_request
+    DropStackRequestAction.
+
+    Container:
+      inventory
+
+    Slot:
+      9-35 ONLY
+  */
+
+  active.inventoryRequestId =
+    Number(
+      active.inventoryRequestId || 0
+    ) + 1;
+
+  active.bot.queue(
+    "item_stack_request",
+    {
+      requests: [
+        {
+          request_id:
+            active.inventoryRequestId,
+
+          actions: [
+            {
+              type_id:
+                "drop",
+
+              count,
+
+              source: {
+                slot_type: {
+                  name:
+                    "inventory"
+                },
+
+                slot,
+
+                stack_id:
+                  stackId
+              },
+
+              randomly:
+                false
+            }
+          ]
+        }
+      ]
+    }
+  );
+
+  return true;
+}
+
+/* =========================================================
+   GET BOT INVENTORY
+   ========================================================= */
+
+app.get(
+  "/api/bot/inventory",
+  (req, res) => {
+    const user =
+      requireActivePlan(
+        req,
+        res
+      );
+
+    if (!user) {
+      return;
+    }
+
+    const active =
+      activeBots.get(
+        user.username
+      );
+
+    if (
+      !active ||
+      !active.bot
+    ) {
+      return res.status(400).json({
+        error:
+          "Bot is not online."
+      });
+    }
+
+    const inventory =
+      Array.isArray(
+        active.inventory
+      )
+        ? active.inventory
+        : [];
+
+    const mainInventory =
+      [];
+
+    const hotbar =
+      [];
+
+    /*
+      MAIN INVENTORY
+      9-35
+    */
+
+    for (
+      let slot =
+        MAIN_INVENTORY_START;
+
+      slot <=
+        MAIN_INVENTORY_END;
+
+      slot++
+    ) {
+      mainInventory.push(
+        inventory[slot] || {
+          slot,
+          empty: true
+        }
+      );
+    }
+
+    /*
+      HOTBAR
+      0-8
+
+      Display only.
+      NEVER modified by drop.
+    */
+
+    for (
+      let slot =
+        HOTBAR_START;
+
+      slot <=
+        HOTBAR_END;
+
+      slot++
+    ) {
+      hotbar.push(
+        inventory[slot] || {
+          slot,
+          empty: true
+        }
+      );
+    }
+
+    res.json({
+      success:
+        true,
+
+      mainInventory,
+
+      hotbar
+    });
+  }
+);
+
+/* =========================================================
+   DROP MAIN INVENTORY
+   ========================================================= */
+
+app.post(
+  "/api/bot/inventory/drop",
+  async (req, res) => {
+    const user =
+      requireActivePlan(
+        req,
+        res
+      );
+
+    if (!user) {
+      return;
+    }
+
+    const active =
+      activeBots.get(
+        user.username
+      );
+
+    if (
+      !active ||
+      !active.bot
+    ) {
+      return res.status(400).json({
+        error:
+          "Bot is not online."
+      });
+    }
+
+    try {
+      /*
+        IMPORTANT:
+
+        We explicitly loop ONLY 9-35.
+
+        0-8 are NEVER passed to
+        dropMainInventorySlot().
+      */
+
+      let dropped =
+        0;
+
+      for (
+        let slot =
+          MAIN_INVENTORY_START;
+
+        slot <=
+          MAIN_INVENTORY_END;
+
+        slot++
+      ) {
+        /*
+          Extra safety check.
+        */
+
+        if (
+          slot >=
+            HOTBAR_START &&
+          slot <=
+            HOTBAR_END
+        ) {
+          continue;
+        }
+
+        const entry =
+          active.inventory?.[slot];
+
+        if (
+          !entry ||
+          entry.empty
+        ) {
+          continue;
+        }
+
+        const didDrop =
+          dropMainInventorySlot(
+            active,
+            slot
+          );
+
+        if (didDrop) {
+          dropped++;
+        }
+
+        /*
+          Small delay between requests.
+        */
+
+        await new Promise(
+          (resolve) =>
+            setTimeout(
+              resolve,
+              100
+            )
+        );
+      }
+
+      res.json({
+        success:
+          true,
+
+        dropped,
+
+        message:
+          "Main inventory dropped. Hotbar was left untouched."
+      });
+
+    } catch (error) {
+      console.error(
+        `[${user.username}] Inventory drop error:`,
+        error
+      );
+
+      res.status(500).json({
+        error:
+          error.message
+      });
+    }
+  }
+);
+
+/* =========================================================
    MICROSOFT / XBOX LOGIN
    ========================================================= */
 
@@ -917,7 +1424,7 @@ app.post(
         "microsoft_connected";
 
       /* =====================================================
-         LIFEBOAT CONNECTION
+         LIFEBOAT
          ===================================================== */
 
       const host =
@@ -960,34 +1467,51 @@ app.post(
             false
         });
 
+      const active = {
+        bot,
+
+        sessionId,
+
+        username:
+          user.username,
+
+        connected:
+          false,
+
+        spawned:
+          false,
+
+        health:
+          null,
+
+        hunger:
+          null,
+
+        position:
+          null,
+
+        world:
+          null,
+
+        inventory:
+          [],
+
+        inventoryRequestId:
+          0
+      };
+
       activeBots.set(
         user.username,
-        {
-          bot,
+        active
+      );
 
-          sessionId,
+      /*
+        Start listening for inventory packets.
+      */
 
-          username:
-            user.username,
-
-          connected:
-            false,
-
-          spawned:
-            false,
-
-          health:
-            null,
-
-          hunger:
-            null,
-
-          position:
-            null,
-
-          world:
-            null
-        }
+      attachInventoryListeners(
+        bot,
+        active
       );
 
       /* =====================================================
@@ -1047,16 +1571,16 @@ app.post(
             `[${user.username}] Bot spawned.`
           );
 
-          const active =
+          const activeBot =
             activeBots.get(
               user.username
             );
 
-          if (active) {
-            active.connected =
+          if (activeBot) {
+            activeBot.connected =
               true;
 
-            active.spawned =
+            activeBot.spawned =
               true;
           }
 
@@ -1128,16 +1652,16 @@ app.post(
             `[${user.username}] Bot disconnected.`
           );
 
-          const active =
+          const activeBot =
             activeBots.get(
               user.username
             );
 
-          if (active) {
-            active.connected =
+          if (activeBot) {
+            activeBot.connected =
               false;
 
-            active.spawned =
+            activeBot.spawned =
               false;
           }
 
@@ -1325,16 +1849,6 @@ app.post(
     }
 
     try {
-      /*
-        Send the command through the
-        Bedrock text packet.
-
-        Example:
-        /hub
-        /tpa PlayerName
-        /msg PlayerName hello
-      */
-
       const message =
         command.startsWith("/")
           ? command
@@ -1402,6 +1916,10 @@ const lifetimeCommand =
       "Generate a lifetime Hqbot activation key"
     );
 
+/* =========================================================
+   DISCORD READY
+   ========================================================= */
+
 discordClient.once(
   "ready",
   async () => {
@@ -1444,7 +1962,7 @@ discordClient.once(
 );
 
 /* =========================================================
-   DISCORD COMMAND HANDLER
+   DISCORD COMMANDS
    ========================================================= */
 
 discordClient.on(
@@ -1457,7 +1975,7 @@ discordClient.on(
     }
 
     /* =====================================================
-       MONTHLY
+       MONTHLY KEY
        ===================================================== */
 
     if (
@@ -1491,7 +2009,7 @@ discordClient.on(
     }
 
     /* =====================================================
-       LIFETIME
+       LIFETIME KEY
        ===================================================== */
 
     if (
