@@ -27,7 +27,9 @@ button {
   display: none !important;
 }
 
-/* LOGIN */
+/* =========================
+   AUTH
+========================= */
 
 #authPage {
   min-height: 100vh;
@@ -72,7 +74,7 @@ button {
 }
 
 .input:focus {
-  border-color: #5e756b;
+  border-color: #657a70;
 }
 
 .primaryBtn {
@@ -102,9 +104,13 @@ button {
   text-align: center;
   color: #ff7777;
   font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
 }
 
-/* APP */
+/* =========================
+   APP
+========================= */
 
 #appPage {
   min-height: 100vh;
@@ -187,7 +193,9 @@ button {
   margin-bottom: 22px;
 }
 
-/* CARDS */
+/* =========================
+   CARDS
+========================= */
 
 .grid {
   display: grid;
@@ -238,7 +246,9 @@ button {
   margin-top: 8px;
 }
 
-/* ACCOUNT */
+/* =========================
+   ACCOUNT
+========================= */
 
 .accountBox {
   background: #111614;
@@ -258,7 +268,9 @@ button {
   margin-top: 5px;
 }
 
-/* BOT */
+/* =========================
+   STATUS
+========================= */
 
 .status {
   display: inline-flex;
@@ -279,7 +291,9 @@ button {
   background: #65d98a;
 }
 
-/* CONSOLE */
+/* =========================
+   CONSOLE
+========================= */
 
 .console {
   background: #050706;
@@ -317,7 +331,9 @@ button {
   font-weight: bold;
 }
 
-/* INVENTORY */
+/* =========================
+   INVENTORY
+========================= */
 
 .inventoryGrid {
   display: grid;
@@ -355,7 +371,9 @@ button {
   border-radius: 9px;
 }
 
-/* MODAL */
+/* =========================
+   MICROSOFT MODAL
+========================= */
 
 .modal {
   position: fixed;
@@ -422,9 +440,12 @@ button {
   border: 1px solid #303b36;
 }
 
-/* MOBILE */
+/* =========================
+   MOBILE
+========================= */
 
 @media(max-width:700px) {
+
   .sidebar {
     width: 65px;
     padding: 10px 7px;
@@ -435,10 +456,6 @@ button {
     text-align: center;
   }
 
-  .navBtn::first-letter {
-    font-size: 20px;
-  }
-
   .content {
     padding: 18px;
   }
@@ -446,22 +463,30 @@ button {
   .inventoryGrid {
     grid-template-columns: repeat(5, 1fr);
   }
+
 }
 </style>
 </head>
 
 <body>
 
-<!-- ======================================================
+<!-- =====================================================
      AUTH PAGE
-====================================================== -->
+===================================================== -->
 
 <div id="authPage">
 
   <div class="authBox">
 
-    <div class="logo">Hqbot</div>
-    <div class="subtitle">Minecraft Bedrock Bot Dashboard</div>
+    <div class="logo">
+      Hqbot
+    </div>
+
+    <div class="subtitle">
+      Minecraft Bedrock Bot Dashboard
+    </div>
+
+    <!-- LOGIN -->
 
     <div id="loginForm">
 
@@ -497,7 +522,12 @@ button {
 
     </div>
 
-    <div id="registerForm" class="hidden">
+    <!-- REGISTER -->
+
+    <div
+      id="registerForm"
+      class="hidden"
+    >
 
       <input
         id="registerUsername"
@@ -529,7 +559,7 @@ button {
 
       <button
         class="secondaryBtn"
-        onclick="showLogin()"
+        onclick="showLoginForm()"
       >
         Back to Login
       </button>
@@ -546,11 +576,14 @@ button {
 </div>
 
 
-<!-- ======================================================
+<!-- =====================================================
      APP PAGE
-====================================================== -->
+===================================================== -->
 
-<div id="appPage" class="hidden">
+<div
+  id="appPage"
+  class="hidden"
+>
 
   <div class="topbar">
 
@@ -778,9 +811,7 @@ button {
               class="dot"
             ></span>
 
-            <span
-              id="statusDescription"
-            >
+            <span id="statusDescription">
               Bot is offline
             </span>
 
@@ -880,9 +911,9 @@ button {
 </div>
 
 
-<!-- ======================================================
-     MICROSOFT LOGIN MODAL
-====================================================== -->
+<!-- =====================================================
+     MICROSOFT MODAL
+===================================================== -->
 
 <div
   id="microsoftModal"
@@ -931,9 +962,9 @@ button {
 
 <script>
 
-/* ======================================================
-   CONFIG
-====================================================== */
+/* =====================================================
+   API
+===================================================== */
 
 const HQBOT_API =
   "https://hqbot-production-b81b.up.railway.app";
@@ -947,75 +978,89 @@ let microsoftSessionId = null;
 
 let microsoftPoller = null;
 
+let durationTimer = null;
 
-/* ======================================================
+
+/* =====================================================
    API HELPER
-====================================================== */
+===================================================== */
 
-async function api(
-  endpoint,
-  options = {}
-) {
+async function api(endpoint, options = {}) {
 
   options.headers =
     options.headers || {};
 
-  options.headers[
-    "Content-Type"
-  ] = "application/json";
+  options.headers["Content-Type"] =
+    "application/json";
 
   if (authToken) {
-    options.headers[
-      "Authorization"
-    ] =
+
+    options.headers["Authorization"] =
       "Bearer " + authToken;
+
   }
 
-  const response =
-    await fetch(
-      HQBOT_API + endpoint,
-      options
+  let response;
+
+  try {
+
+    response =
+      await fetch(
+        HQBOT_API + endpoint,
+        options
+      );
+
+  } catch (networkError) {
+
+    throw new Error(
+      "Failed to connect to Hqbot. Check that the Railway server is online and Preview allows external connections."
     );
+
+  }
 
   let data = {};
 
   try {
+
     data =
       await response.json();
+
   } catch {
+
     data = {};
+
   }
 
   if (!response.ok) {
+
     throw new Error(
       data.error ||
+      data.message ||
       `Request failed (${response.status})`
     );
+
   }
 
   return data;
+
 }
 
 
-/* ======================================================
+/* =====================================================
    LOGIN
-====================================================== */
+===================================================== */
 
 async function login() {
 
   const username =
     document
-      .getElementById(
-        "loginUsername"
-      )
+      .getElementById("loginUsername")
       .value
       .trim();
 
   const password =
     document
-      .getElementById(
-        "loginPassword"
-      )
+      .getElementById("loginPassword")
       .value;
 
   const message =
@@ -1023,26 +1068,19 @@ async function login() {
       "authMessage"
     );
 
-  message.textContent =
-    "Logging in...";
-
   if (!username || !password) {
+
     message.textContent =
       "Enter your username and password.";
 
     return;
+
   }
 
+  message.textContent =
+    "Logging in...";
+
   try {
-
-    /*
-      IMPORTANT:
-      Correct backend route:
-
-      /api/auth/login
-
-      NOT /api/login
-    */
 
     const data =
       await api(
@@ -1052,11 +1090,19 @@ async function login() {
 
           body:
             JSON.stringify({
-              username,
-              password
+              username: username,
+              password: password
             })
         }
       );
+
+    if (!data.token) {
+
+      throw new Error(
+        "Login succeeded but the server did not return a token."
+      );
+
+    }
 
     authToken =
       data.token;
@@ -1074,42 +1120,43 @@ async function login() {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "LOGIN ERROR:",
+      error
+    );
 
     message.textContent =
-      error.message ||
-      "Could not connect to Hqbot.";
+      "Login Error: " +
+      (
+        error.message ||
+        "Unknown error"
+      );
 
   }
+
 }
 
 
-/* ======================================================
+/* =====================================================
    REGISTER
-====================================================== */
+===================================================== */
 
 async function registerAccount() {
 
   const username =
     document
-      .getElementById(
-        "registerUsername"
-      )
+      .getElementById("registerUsername")
       .value
       .trim();
 
   const password =
     document
-      .getElementById(
-        "registerPassword"
-      )
+      .getElementById("registerPassword")
       .value;
 
   const activationKey =
     document
-      .getElementById(
-        "activationKey"
-      )
+      .getElementById("activationKey")
       .value
       .trim();
 
@@ -1117,9 +1164,6 @@ async function registerAccount() {
     document.getElementById(
       "authMessage"
     );
-
-  message.textContent =
-    "Creating account...";
 
   if (
     !username ||
@@ -1131,15 +1175,13 @@ async function registerAccount() {
       "Fill in all fields.";
 
     return;
+
   }
 
+  message.textContent =
+    "Creating account...";
+
   try {
-
-    /*
-      Correct backend route:
-
-      /api/auth/register
-    */
 
     const data =
       await api(
@@ -1149,12 +1191,20 @@ async function registerAccount() {
 
           body:
             JSON.stringify({
-              username,
-              password,
-              activationKey
+              username: username,
+              password: password,
+              activationKey: activationKey
             })
         }
       );
+
+    if (!data.token) {
+
+      throw new Error(
+        "Account created but the server did not return a token."
+      );
+
+    }
 
     authToken =
       data.token;
@@ -1172,27 +1222,28 @@ async function registerAccount() {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "REGISTER ERROR:",
+      error
+    );
 
     message.textContent =
-      error.message ||
-      "Registration failed.";
+      "Registration Error: " +
+      (
+        error.message ||
+        "Unknown error"
+      );
 
   }
+
 }
 
 
-/* ======================================================
+/* =====================================================
    CURRENT USER
-====================================================== */
+===================================================== */
 
 async function loadCurrentUser() {
-
-  /*
-    Correct backend route:
-
-    /api/auth/me
-  */
 
   const data =
     await api(
@@ -1205,7 +1256,7 @@ async function loadCurrentUser() {
   document.getElementById(
     "dashboardUsername"
   ).textContent =
-    data.username;
+    data.username || "Unknown";
 
   document.getElementById(
     "dashboardPlan"
@@ -1215,7 +1266,7 @@ async function loadCurrentUser() {
   document.getElementById(
     "accountName"
   ).textContent =
-    data.username;
+    data.username || "Account";
 
   document.getElementById(
     "accountPlan"
@@ -1227,9 +1278,9 @@ async function loadCurrentUser() {
 }
 
 
-/* ======================================================
+/* =====================================================
    PLAN
-====================================================== */
+===================================================== */
 
 function formatPlan(plan) {
 
@@ -1242,6 +1293,7 @@ function formatPlan(plan) {
   }
 
   return plan || "Unknown";
+
 }
 
 
@@ -1249,39 +1301,38 @@ async function updateDuration() {
 
   try {
 
-    /*
-      Correct backend route:
-
-      /api/plan
-    */
-
     const data =
       await api(
         "/api/plan"
       );
 
-    const planText =
-      document.getElementById(
-        "planText"
-      );
-
-    const durationText =
-      document.getElementById(
-        "durationText"
-      );
-
-    planText.textContent =
+    document.getElementById(
+      "planText"
+    ).textContent =
       formatPlan(data.plan);
+
+    if (durationTimer) {
+
+      clearInterval(
+        durationTimer
+      );
+
+      durationTimer = null;
+
+    }
 
     if (
       data.plan ===
       "lifetime"
     ) {
 
-      durationText.textContent =
+      document.getElementById(
+        "durationText"
+      ).textContent =
         "Never expires";
 
       return;
+
     }
 
     if (
@@ -1289,20 +1340,87 @@ async function updateDuration() {
       !data.expiresAt
     ) {
 
-      durationText.textContent =
+      document.getElementById(
+        "durationText"
+      ).textContent =
         "Expired";
 
       return;
+
     }
 
-    updateCountdown(
-      data.expiresAt
-    );
+    const expiresAt =
+      Number(
+        data.expiresAt
+      );
+
+    function tickDuration() {
+
+      const remaining =
+        expiresAt -
+        Date.now();
+
+      if (remaining <= 0) {
+
+        document.getElementById(
+          "durationText"
+        ).textContent =
+          "Expired";
+
+        clearInterval(
+          durationTimer
+        );
+
+        return;
+
+      }
+
+      const days =
+        Math.floor(
+          remaining /
+          (24 * 60 * 60 * 1000)
+        );
+
+      const hours =
+        Math.floor(
+          (remaining %
+            (24 * 60 * 60 * 1000)) /
+          (60 * 60 * 1000)
+        );
+
+      const minutes =
+        Math.floor(
+          (remaining %
+            (60 * 60 * 1000)) /
+          (60 * 1000)
+        );
+
+      const seconds =
+        Math.floor(
+          (remaining %
+            (60 * 1000)) /
+          1000
+        );
+
+      document.getElementById(
+        "durationText"
+      ).textContent =
+        `${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+    }
+
+    tickDuration();
+
+    durationTimer =
+      setInterval(
+        tickDuration,
+        1000
+      );
 
   } catch (error) {
 
     console.error(
-      "Plan error:",
+      "PLAN ERROR:",
       error
     );
 
@@ -1312,76 +1430,13 @@ async function updateDuration() {
       "Unable to load duration.";
 
   }
+
 }
 
 
-function updateCountdown(
-  expiresAt
-) {
-
-  const element =
-    document.getElementById(
-      "durationText"
-    );
-
-  function tick() {
-
-    const remaining =
-      expiresAt -
-      Date.now();
-
-    if (remaining <= 0) {
-
-      element.textContent =
-        "Expired";
-
-      return;
-    }
-
-    const days =
-      Math.floor(
-        remaining /
-        (24 * 60 * 60 * 1000)
-      );
-
-    const hours =
-      Math.floor(
-        (remaining %
-          (24 * 60 * 60 * 1000)) /
-        (60 * 60 * 1000)
-      );
-
-    const minutes =
-      Math.floor(
-        (remaining %
-          (60 * 60 * 1000)) /
-        (60 * 1000)
-      );
-
-    const seconds =
-      Math.floor(
-        (remaining %
-          (60 * 1000)) /
-        1000
-      );
-
-    element.textContent =
-      `${days}d ${hours}h ${minutes}m ${seconds}s`;
-
-  }
-
-  tick();
-
-  setInterval(
-    tick,
-    1000
-  );
-}
-
-
-/* ======================================================
+/* =====================================================
    LOGOUT
-====================================================== */
+===================================================== */
 
 async function logout() {
 
@@ -1400,7 +1455,10 @@ async function logout() {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "LOGOUT ERROR:",
+      error
+    );
 
   }
 
@@ -1417,15 +1475,11 @@ async function logout() {
 }
 
 
-/* ======================================================
+/* =====================================================
    MICROSOFT LOGIN
-====================================================== */
+===================================================== */
 
 async function startMicrosoftLogin() {
-
-  if (!authToken) {
-    return;
-  }
 
   const modal =
     document.getElementById(
@@ -1463,12 +1517,6 @@ async function startMicrosoftLogin() {
 
   try {
 
-    /*
-      Correct backend route:
-
-      /api/microsoft/login
-    */
-
     const data =
       await api(
         "/api/microsoft/login",
@@ -1488,26 +1536,24 @@ async function startMicrosoftLogin() {
   } catch (error) {
 
     message.textContent =
-      error.message ||
-      "Could not start Microsoft login.";
+      "Microsoft Login Error: " +
+      (
+        error.message ||
+        "Unknown error"
+      );
 
   }
+
 }
 
 
-/* ======================================================
+/* =====================================================
    MICROSOFT POLLING
-====================================================== */
+===================================================== */
 
 function startMicrosoftPolling() {
 
-  if (microsoftPoller) {
-
-    clearInterval(
-      microsoftPoller
-    );
-
-  }
+  stopMicrosoftPolling();
 
   microsoftPoller =
     setInterval(
@@ -1516,6 +1562,7 @@ function startMicrosoftPolling() {
     );
 
   pollMicrosoftLogin();
+
 }
 
 
@@ -1526,12 +1573,6 @@ async function pollMicrosoftLogin() {
   }
 
   try {
-
-    /*
-      Correct backend route:
-
-      /api/microsoft/login/:sessionId
-    */
 
     const data =
       await api(
@@ -1563,9 +1604,7 @@ async function pollMicrosoftLogin() {
 
     }
 
-    if (
-      data.verificationUri
-    ) {
+    if (data.verificationUri) {
 
       openButton.classList.remove(
         "hidden"
@@ -1612,8 +1651,27 @@ async function pollMicrosoftLogin() {
     ) {
 
       message.textContent =
-        data.error ||
-        "Microsoft login failed.";
+        "Microsoft Login Error: " +
+        (
+          data.error ||
+          "Unknown error"
+        );
+
+      stopMicrosoftPolling();
+
+    }
+
+    if (
+      data.botStatus ===
+      "error"
+    ) {
+
+      message.textContent =
+        "Bot Connection Error: " +
+        (
+          data.error ||
+          "Unknown error"
+        );
 
       stopMicrosoftPolling();
 
@@ -1625,27 +1683,28 @@ async function pollMicrosoftLogin() {
     ) {
 
       message.textContent =
-        "✅ Hqbot is online!";
+        "Hqbot is online!";
 
       stopMicrosoftPolling();
+
+      updateBotStatus();
 
       setTimeout(
         closeMicrosoftModal,
         1500
       );
 
-      updateBotStatus();
-
     }
 
   } catch (error) {
 
     console.error(
-      "Microsoft polling error:",
+      "MICROSOFT POLLING ERROR:",
       error
     );
 
   }
+
 }
 
 
@@ -1667,6 +1726,7 @@ function openMicrosoftLoginPage() {
     );
 
   }
+
 }
 
 
@@ -1678,10 +1738,10 @@ function stopMicrosoftPolling() {
       microsoftPoller
     );
 
-    microsoftPoller =
-      null;
+    microsoftPoller = null;
 
   }
+
 }
 
 
@@ -1700,9 +1760,9 @@ function closeMicrosoftModal() {
 }
 
 
-/* ======================================================
+/* =====================================================
    BOT STATUS
-====================================================== */
+===================================================== */
 
 async function updateBotStatus() {
 
@@ -1711,15 +1771,6 @@ async function updateBotStatus() {
   }
 
   try {
-
-    /*
-      IMPORTANT:
-      Correct backend route is:
-
-      /api/bot/status
-
-      NOT /api/status
-    */
 
     const data =
       await api(
@@ -1750,30 +1801,30 @@ async function updateBotStatus() {
         ? "Bot is online"
         : "Bot is offline";
 
-    const dot =
-      document.getElementById(
+    document
+      .getElementById(
         "statusDot"
+      )
+      .classList.toggle(
+        "online",
+        online
       );
-
-    dot.classList.toggle(
-      "online",
-      online
-    );
 
   } catch (error) {
 
     console.error(
-      "Bot status error:",
+      "BOT STATUS ERROR:",
       error
     );
 
   }
+
 }
 
 
-/* ======================================================
+/* =====================================================
    COMMAND
-====================================================== */
+===================================================== */
 
 async function sendCommand() {
 
@@ -1796,12 +1847,6 @@ async function sendCommand() {
 
   try {
 
-    /*
-      Correct backend route:
-
-      /api/bot/command
-    */
-
     const data =
       await api(
         "/api/bot/command",
@@ -1810,13 +1855,13 @@ async function sendCommand() {
 
           body:
             JSON.stringify({
-              command
+              command: command
             })
         }
       );
 
     output.textContent +=
-      `\n> ${data.command}`;
+      `\n> ${data.command || command}`;
 
     input.value = "";
 
@@ -1826,22 +1871,17 @@ async function sendCommand() {
       `\n[ERROR] ${error.message}`;
 
   }
+
 }
 
 
-/* ======================================================
+/* =====================================================
    INVENTORY
-====================================================== */
+===================================================== */
 
 async function loadInventory() {
 
   try {
-
-    /*
-      Correct backend route:
-
-      /api/bot/inventory
-    */
 
     const data =
       await api(
@@ -1861,7 +1901,7 @@ async function loadInventory() {
   } catch (error) {
 
     console.error(
-      "Inventory error:",
+      "INVENTORY ERROR:",
       error
     );
 
@@ -1873,6 +1913,7 @@ async function loadInventory() {
       </div>`;
 
   }
+
 }
 
 
@@ -1888,11 +1929,7 @@ function renderInventory(
 
   container.innerHTML = "";
 
-  if (
-    !Array.isArray(
-      inventory
-    )
-  ) {
+  if (!Array.isArray(inventory)) {
     return;
   }
 
@@ -1907,9 +1944,7 @@ function renderInventory(
       slot.className =
         "slot";
 
-      if (
-        item.empty
-      ) {
+      if (item.empty) {
 
         slot.innerHTML =
           `<div class="slotNumber">
@@ -1938,12 +1973,13 @@ function renderInventory(
 
     }
   );
+
 }
 
 
-/* ======================================================
+/* =====================================================
    DROP INVENTORY
-====================================================== */
+===================================================== */
 
 async function dropInventory() {
 
@@ -1952,18 +1988,12 @@ async function dropInventory() {
       "Drop everything in the MAIN inventory? Your hotbar will NOT be touched."
     )
   ) {
+
     return;
+
   }
 
   try {
-
-    /*
-      Correct backend route:
-
-      /api/bot/inventory/drop
-
-      The backend itself protects slots 0-8.
-    */
 
     const data =
       await api(
@@ -1978,22 +2008,26 @@ async function dropInventory() {
       `Dropped ${data.dropped || 0} items.`
     );
 
-    loadInventory();
+    await loadInventory();
 
   } catch (error) {
 
     alert(
-      error.message ||
-      "Could not drop inventory."
+      "Drop Error: " +
+      (
+        error.message ||
+        "Unknown error"
+      )
     );
 
   }
+
 }
 
 
-/* ======================================================
+/* =====================================================
    NAVIGATION
-====================================================== */
+===================================================== */
 
 function openPage(
   pageId,
@@ -2001,9 +2035,7 @@ function openPage(
 ) {
 
   document
-    .querySelectorAll(
-      ".page"
-    )
+    .querySelectorAll(".page")
     .forEach(
       page =>
         page.classList.remove(
@@ -2012,9 +2044,7 @@ function openPage(
     );
 
   document
-    .querySelectorAll(
-      ".navBtn"
-    )
+    .querySelectorAll(".navBtn")
     .forEach(
       btn =>
         btn.classList.remove(
@@ -2023,9 +2053,7 @@ function openPage(
     );
 
   document
-    .getElementById(
-      pageId
-    )
+    .getElementById(pageId)
     .classList.add(
       "active"
     );
@@ -2055,78 +2083,70 @@ function openPage(
 }
 
 
-/* ======================================================
-   AUTH SCREEN
-====================================================== */
+/* =====================================================
+   REGISTER SCREEN
+===================================================== */
 
 function showRegister() {
 
   document
-    .getElementById(
-      "loginForm"
-    )
+    .getElementById("loginForm")
     .classList.add(
       "hidden"
     );
 
   document
-    .getElementById(
-      "registerForm"
-    )
+    .getElementById("registerForm")
     .classList.remove(
       "hidden"
     );
 
   document
-    .getElementById(
-      "authMessage"
-    )
+    .getElementById("authMessage")
     .textContent = "";
 
 }
 
 
-function showLogin() {
+/* =====================================================
+   BACK TO LOGIN
+===================================================== */
+
+function showLoginForm() {
 
   document
-    .getElementById(
-      "registerForm"
-    )
+    .getElementById("registerForm")
     .classList.add(
       "hidden"
     );
 
   document
-    .getElementById(
-      "loginForm"
-    )
+    .getElementById("loginForm")
     .classList.remove(
       "hidden"
     );
 
   document
-    .getElementById(
-      "authMessage"
-    )
+    .getElementById("authMessage")
     .textContent = "";
 
 }
 
+
+/* =====================================================
+   SHOW APP
+===================================================== */
 
 function showApp() {
 
   document
-    .getElementById(
-      "authPage"
-    )
+    .getElementById("authPage")
     .classList.add(
       "hidden"
     );
 
   document
-    .getElementById(
-      "appPage"
-    )
+    .getElementById("appPage")
     .classList.remove(
       "hidden"
     );
@@ -2136,63 +2156,48 @@ function showApp() {
 }
 
 
+/* =====================================================
+   SHOW LOGIN
+===================================================== */
+
 function showLogin() {
 
   document
-    .getElementById(
-      "appPage"
-    )
+    .getElementById("appPage")
     .classList.add(
       "hidden"
     );
 
   document
-    .getElementById(
-      "authPage"
-    )
+    .getElementById("authPage")
     .classList.remove(
       "hidden"
     );
 
+  showLoginForm();
+
 }
 
 
-/* ======================================================
+/* =====================================================
    ESCAPE HTML
-====================================================== */
+===================================================== */
 
-function escapeHtml(
-  value
-) {
+function escapeHtml(value) {
 
   return String(value)
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 
 }
 
 
-/* ======================================================
+/* =====================================================
    AUTO LOGIN
-====================================================== */
+===================================================== */
 
 async function checkExistingLogin() {
 
@@ -2206,12 +2211,6 @@ async function checkExistingLogin() {
 
   try {
 
-    /*
-      Correct backend route:
-
-      /api/auth/me
-    */
-
     await loadCurrentUser();
 
     showApp();
@@ -2219,7 +2218,8 @@ async function checkExistingLogin() {
   } catch (error) {
 
     console.log(
-      "Session expired."
+      "Session expired:",
+      error.message
     );
 
     authToken = null;
@@ -2235,22 +2235,24 @@ async function checkExistingLogin() {
 }
 
 
-/* ======================================================
+/* =====================================================
    START
-====================================================== */
+===================================================== */
 
 checkExistingLogin();
 
 
-/* ======================================================
-   PERIODIC BOT STATUS
-====================================================== */
+/* =====================================================
+   BOT STATUS REFRESH
+===================================================== */
 
 setInterval(
   () => {
 
     if (authToken) {
+
       updateBotStatus();
+
     }
 
   },
