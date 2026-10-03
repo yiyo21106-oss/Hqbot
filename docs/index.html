@@ -210,6 +210,38 @@ body {
   margin-top: 10px;
 }
 
+/* ================= DURATION ================= */
+
+.durationCard {
+  margin-top: 15px;
+  background: #111613;
+  border: 1px solid #253029;
+  border-radius: 14px;
+  padding: 22px;
+}
+
+.durationTitle {
+  color: #89938c;
+  font-size: 13px;
+}
+
+.durationPlan {
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.durationValue {
+  margin-top: 8px;
+  font-size: 20px;
+  font-weight: bold;
+  color: #20e66b;
+}
+
+.durationExpired {
+  color: #ff5c5c !important;
+}
+
 /* ================= GENERAL BOX ================= */
 
 .sectionBox {
@@ -800,6 +832,31 @@ body {
       </div>
 
 
+      <!-- ================= PLAN / DURATION ================= -->
+
+      <div class="durationCard">
+
+        <div class="durationTitle">
+          Hqbot Plan
+        </div>
+
+        <div
+          id="planText"
+          class="durationPlan"
+        >
+          Loading...
+        </div>
+
+        <div
+          id="durationText"
+          class="durationValue"
+        >
+          Loading duration...
+        </div>
+
+      </div>
+
+
       <div class="sectionBox">
 
         <h3>Bot Status</h3>
@@ -1120,6 +1177,8 @@ const HQBOT_API =
 let authToken =
   sessionStorage.getItem("hqbotToken");
 
+let durationTimer = null;
+
 
 /* =========================================================
    AUTH
@@ -1333,11 +1392,18 @@ function showDashboard() {
     "[SYSTEM] Logged in successfully."
   );
 
+  loadPlanDuration();
+
   refreshBotStatus();
 }
 
 
 function showAuth() {
+
+  if (durationTimer) {
+    clearInterval(durationTimer);
+    durationTimer = null;
+  }
 
   document.getElementById(
     "authPage"
@@ -1346,6 +1412,222 @@ function showAuth() {
   document.getElementById(
     "dashboard"
   ).style.display = "none";
+}
+
+
+/* =========================================================
+   PLAN / DURATION
+   ========================================================= */
+
+async function loadPlanDuration() {
+
+  const planText =
+    document.getElementById(
+      "planText"
+    );
+
+  const durationText =
+    document.getElementById(
+      "durationText"
+    );
+
+  if (!planText || !durationText) {
+    return;
+  }
+
+  if (!authToken) {
+    planText.textContent = "Not logged in";
+    durationText.textContent = "—";
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        HQBOT_API +
+        "/api/plan",
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              authToken
+          }
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+
+      planText.textContent =
+        "Unavailable";
+
+      durationText.textContent =
+        data.error ||
+        "Could not load duration.";
+
+      durationText.classList.add(
+        "durationExpired"
+      );
+
+      return;
+    }
+
+    const plan =
+      String(
+        data.plan || ""
+      ).toLowerCase();
+
+    if (plan === "lifetime") {
+
+      planText.textContent =
+        "♾️ Lifetime";
+
+      durationText.classList.remove(
+        "durationExpired"
+      );
+
+      durationText.textContent =
+        "♾️ Never expires";
+
+      if (durationTimer) {
+        clearInterval(durationTimer);
+        durationTimer = null;
+      }
+
+      return;
+    }
+
+    if (
+      data.expired ||
+      !data.expiresAt ||
+      data.expiresAt <= Date.now()
+    ) {
+
+      planText.textContent =
+        "📅 Monthly";
+
+      durationText.textContent =
+        "🔴 Expired";
+
+      durationText.classList.add(
+        "durationExpired"
+      );
+
+      if (durationTimer) {
+        clearInterval(durationTimer);
+        durationTimer = null;
+      }
+
+      return;
+    }
+
+    planText.textContent =
+      "📅 Monthly";
+
+    durationText.classList.remove(
+      "durationExpired"
+    );
+
+    updateDurationCountdown(
+      data.expiresAt
+    );
+
+    if (durationTimer) {
+      clearInterval(durationTimer);
+    }
+
+    durationTimer =
+      setInterval(
+        () => {
+          updateDurationCountdown(
+            data.expiresAt
+          );
+        },
+        1000
+      );
+
+  } catch (err) {
+
+    planText.textContent =
+      "Unavailable";
+
+    durationText.textContent =
+      "Could not connect to Hqbot.";
+
+    durationText.classList.add(
+      "durationExpired"
+    );
+  }
+}
+
+
+function updateDurationCountdown(
+  expiresAt
+) {
+
+  const durationText =
+    document.getElementById(
+      "durationText"
+    );
+
+  if (!durationText) {
+    return;
+  }
+
+  const remaining =
+    Math.max(
+      0,
+      Number(expiresAt) -
+      Date.now()
+    );
+
+  if (remaining <= 0) {
+
+    durationText.textContent =
+      "🔴 Expired";
+
+    durationText.classList.add(
+      "durationExpired"
+    );
+
+    if (durationTimer) {
+      clearInterval(durationTimer);
+      durationTimer = null;
+    }
+
+    return;
+  }
+
+  const totalSeconds =
+    Math.floor(
+      remaining / 1000
+    );
+
+  const days =
+    Math.floor(
+      totalSeconds / 86400
+    );
+
+  const hours =
+    Math.floor(
+      (totalSeconds % 86400) /
+      3600
+    );
+
+  const minutes =
+    Math.floor(
+      (totalSeconds % 3600) /
+      60
+    );
+
+  const seconds =
+    totalSeconds % 60;
+
+  durationText.textContent =
+    `⏳ ${days}d ${hours}h ${minutes}m ${seconds}s remaining`;
 }
 
 
@@ -1426,6 +1708,8 @@ function showDashboardPage() {
   );
 
   closeMenu();
+
+  loadPlanDuration();
 
   refreshBotStatus();
 }
@@ -1989,10 +2273,6 @@ async function loadInventory() {
       return;
     }
 
-    /*
-      MAIN INVENTORY = 9-35
-    */
-
     const main =
       Array.isArray(
         data.mainInventory
@@ -2021,12 +2301,6 @@ async function loadInventory() {
         slot
       );
     }
-
-    /*
-      HOTBAR = 0-8
-
-      Display only.
-    */
 
     const hotbar =
       Array.isArray(
@@ -2193,11 +2467,6 @@ async function dropInventory() {
         "Main inventory drop requested."
       )
     );
-
-    /*
-      Give the server a moment to send
-      inventory updates, then refresh.
-    */
 
     setTimeout(
       loadInventory,
