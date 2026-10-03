@@ -25,11 +25,23 @@ app.use(express.json());
    DATA STORAGE
    ========================================================= */
 
-const DATA_DIR = path.join(__dirname, "data");
+const DATA_DIR = process.env.DATA_DIR || "/data";
 
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+} catch (err) {
+  console.error("Could not create DATA_DIR:", err);
 }
+
+/*
+  These files are stored in /data.
+
+  IMPORTANT:
+  Railway must have a Volume mounted at /data
+  if you want accounts to survive redeploys/restarts.
+*/
 
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 const SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
@@ -40,85 +52,85 @@ function loadJSON(file, fallback) {
     if (!fs.existsSync(file)) {
       fs.writeFileSync(
         file,
-        JSON.stringify(fallback, null, 2)
+        JSON.stringify(fallback, null, 2),
+        "utf8"
       );
 
       return fallback;
     }
 
-    return JSON.parse(
-      fs.readFileSync(file, "utf8")
-    );
+    const raw = fs.readFileSync(file, "utf8");
+
+    if (!raw.trim()) {
+      return fallback;
+    }
+
+    return JSON.parse(raw);
   } catch (error) {
-    console.error("JSON load error:", error);
+    console.error("JSON load error:", file, error);
     return fallback;
   }
 }
 
 function saveJSON(file, data) {
   try {
+    const tempFile = `${file}.tmp`;
+
     fs.writeFileSync(
-      file,
-      JSON.stringify(data, null, 2)
+      tempFile,
+      JSON.stringify(data, null, 2),
+      "utf8"
     );
+
+    fs.renameSync(tempFile, file);
+
+    return true;
   } catch (error) {
-    console.error("JSON save error:", error);
+    console.error("JSON save error:", file, error);
+    return false;
   }
 }
 
-/* =========================================================
-   LOAD DATA
-   ========================================================= */
-
 const users = new Map(
-  Object.entries(
-    loadJSON(USERS_FILE, {})
-  )
+  Object.entries(loadJSON(USERS_FILE, {}))
 );
 
 const loginSessions = new Map(
-  Object.entries(
-    loadJSON(SESSIONS_FILE, {})
-  )
+  Object.entries(loadJSON(SESSIONS_FILE, {}))
 );
 
 const activationKeys = new Map(
-  Object.entries(
-    loadJSON(KEYS_FILE, {})
-  )
+  Object.entries(loadJSON(KEYS_FILE, {}))
 );
 
 const microsoftSessions = new Map();
 const activeBots = new Map();
 
 /* =========================================================
-   PASSWORD SECURITY
+   PASSWORDS
    ========================================================= */
 
 function hashPassword(password) {
-  const salt =
-    crypto.randomBytes(16).toString("hex");
+  const salt = crypto.randomBytes(16).toString("hex");
 
-  const hash =
-    crypto
-      .scryptSync(password, salt, 64)
-      .toString("hex");
+  const hash = crypto
+    .scryptSync(password, salt, 64)
+    .toString("hex");
 
   return `${salt}:${hash}`;
 }
 
-function verifyPassword(
-  password,
-  storedPassword
-) {
+function verifyPassword(password, storedPassword) {
   try {
-    const [salt, storedHash] =
-      storedPassword.split(":");
+    if (!storedPassword || !storedPassword.includes(":")) {
+      return false;
+    }
 
-    const hash =
-      crypto
-        .scryptSync(password, salt, 64)
-        .toString("hex");
+    const [salt, storedHash] = storedPassword.split(":");
+
+    const hash = crypto
+      .scryptSync(password, salt, 64)
+      .toString("hex");
 
     return crypto.timingSafeEqual(
       Buffer.from(hash, "hex"),
@@ -130,7 +142,21 @@ function verifyPassword(
 }
 
 /* =========================================================
-   LOGIN SYSTEM
+   NORMALIZATION
+   ========================================================= */
+
+function normalizeActivationKey(value) {
+  return String(value || "")
+    .trim()
+    .toUpperCase();
+}
+
+function normalizeUsername(value) {
+  return String(value || "").trim();
+}
+
+/* =========================================================
+   SESSIONS
    ========================================================= */
 
 function saveSessions() {
@@ -141,8 +167,9 @@ function saveSessions() {
 }
 
 function createLoginToken(username) {
-  const token =
-    crypto.randomBytes(48).toString("hex");
+  const token = crypto
+    .randomBytes(48)
+    .toString("hex");
 
   loginSessions.set(token, {
     username,
@@ -155,20 +182,15 @@ function createLoginToken(username) {
 }
 
 function getLoggedInUser(req) {
-  const header =
-    req.headers.authorization;
+  const header = req.headers.authorization;
 
-  if (
-    !header ||
-    !header.startsWith("Bearer ")
-  ) {
+  if (!header || !header.startsWith("Bearer ")) {
     return null;
   }
 
   const token = header.slice(7);
 
-  const session =
-    loginSessions.get(token);
+  const session = loginSessions.get(token);
 
   if (!session) {
     return null;
@@ -178,20 +200,15 @@ function getLoggedInUser(req) {
 }
 
 function getLoginSession(req) {
-  const header =
-    req.headers.authorization;
+  const header = req.headers.authorization;
 
-  if (
-    !header ||
-    !header.startsWith("Bearer ")
-  ) {
+  if (!header || !header.startsWith("Bearer ")) {
     return null;
   }
 
   const token = header.slice(7);
 
-  const session =
-    loginSessions.get(token);
+  const session = loginSessions.get(token);
 
   if (!session) {
     return null;
@@ -204,34 +221,11 @@ function getLoginSession(req) {
 }
 
 /* =========================================================
-   ACTIVATION KEYS
-   ========================================================= */
-
-function generateActivationKey() {
-  return (
-    "HQ-" +
-    crypto
-      .randomBytes(24)
-      .toString("hex")
-      .toUpperCase()
-  );
-}
-
-function saveActivationKeys() {
-  saveJSON(
-    KEYS_FILE,
-    Object.fromEntries(activationKeys)
-  );
-}
-
-/* =========================================================
-   PLAN SYSTEM
+   PLANS
    ========================================================= */
 
 function isPlanExpired(user) {
-  if (!user) {
-    return true;
-  }
+  if (!user) return true;
 
   if (user.plan === "lifetime") {
     return false;
@@ -268,25 +262,21 @@ function getRemainingMs(user) {
 }
 
 function requireActivePlan(req, res) {
-  const username =
-    getLoggedInUser(req);
+  const username = getLoggedInUser(req);
 
   if (!username) {
     res.status(401).json({
-      error:
-        "You must login first."
+      error: "You must login first."
     });
 
     return null;
   }
 
-  const user =
-    users.get(username);
+  const user = users.get(username);
 
   if (!user) {
     res.status(401).json({
-      error:
-        "Account not found."
+      error: "Account not found."
     });
 
     return null;
@@ -294,8 +284,7 @@ function requireActivePlan(req, res) {
 
   if (isPlanExpired(user)) {
     res.status(403).json({
-      error:
-        "Error: Your Monthly Hqbot is expired."
+      error: "Error: Your Monthly Hqbot is expired."
     });
 
     return null;
@@ -319,47 +308,59 @@ app.get("/", (req, res) => {
    REGISTER
    ========================================================= */
 
-app.post(
-  "/api/auth/register",
-  (req, res) => {
-    const {
-      username,
-      password,
-      activationKey
-    } = req.body;
+app.post("/api/auth/register", (req, res) => {
+  try {
+    const username = normalizeUsername(req.body.username);
+    const password = String(req.body.password || "");
+    const activationKey = normalizeActivationKey(
+      req.body.activationKey
+    );
 
-    if (
-      !username ||
-      !password ||
-      !activationKey
-    ) {
+    if (!username || !password || !activationKey) {
       return res.status(400).json({
         error:
           "Username, password and activation key are required."
       });
     }
 
-    if (users.has(username)) {
+    if (username.length < 3) {
       return res.status(400).json({
-        error:
-          "Username already exists."
+        error: "Username must be at least 3 characters."
       });
     }
 
-    const keyData =
-      activationKeys.get(
-        activationKey
-      );
+    if (password.length < 4) {
+      return res.status(400).json({
+        error: "Password must be at least 4 characters."
+      });
+    }
+
+    if (users.has(username)) {
+      return res.status(400).json({
+        error: "Username already exists."
+      });
+    }
+
+    const keyData = activationKeys.get(
+      activationKey
+    );
 
     if (!keyData) {
       return res.status(400).json({
-        error:
-          "Invalid activation key."
+        error: "Invalid activation key."
       });
     }
 
-    const plan =
-      keyData.type;
+    const plan = keyData.type;
+
+    if (
+      plan !== "monthly" &&
+      plan !== "lifetime"
+    ) {
+      return res.status(400).json({
+        error: "Invalid activation key type."
+      });
+    }
 
     const now = Date.now();
 
@@ -377,68 +378,68 @@ app.post(
 
     const user = {
       username,
-
-      password:
-        hashPassword(password),
-
+      password: hashPassword(password),
       plan,
-
-      activatedAt:
-        now,
-
+      activatedAt: now,
       expiresAt,
-
-      createdAt:
-        now
+      createdAt: now
     };
 
-    users.set(
-      username,
-      user
-    );
+    users.set(username, user);
 
-    saveJSON(
+    const saved = saveJSON(
       USERS_FILE,
       Object.fromEntries(users)
     );
 
-    activationKeys.delete(
-      activationKey
+    if (!saved) {
+      users.delete(username);
+
+      return res.status(500).json({
+        error:
+          "Could not save your account. Please try again."
+      });
+    }
+
+    activationKeys.delete(activationKey);
+
+    saveJSON(
+      KEYS_FILE,
+      Object.fromEntries(activationKeys)
     );
 
-    saveActivationKeys();
-
-    const token =
-      createLoginToken(username);
+    const token = createLoginToken(username);
 
     res.json({
       success: true,
-
-      message:
-        "Account created successfully.",
-
+      message: "Account created successfully.",
       token,
-
       username,
-
       plan,
-
       expiresAt
     });
+  } catch (error) {
+    console.error("REGISTER ERROR:", error);
+
+    res.status(500).json({
+      error: "Registration failed."
+    });
   }
-);
+});
 
 /* =========================================================
    LOGIN
    ========================================================= */
 
-app.post(
-  "/api/auth/login",
-  (req, res) => {
-    const {
-      username,
-      password
-    } = req.body;
+app.post("/api/auth/login", (req, res) => {
+  try {
+    const username = normalizeUsername(
+      req.body.username
+    );
+
+    const password = String(
+      req.body.password || ""
+    );
 
     if (!username || !password) {
       return res.status(400).json({
@@ -447,10 +448,13 @@ app.post(
       });
     }
 
-    const user =
-      users.get(username);
+    const user = users.get(username);
 
     if (!user) {
+      console.log(
+        `LOGIN FAILED: user "${username}" does not exist.`
+      );
+
       return res.status(401).json({
         error:
           "Invalid username or password."
@@ -458,190 +462,150 @@ app.post(
     }
 
     if (
+      !user.password ||
       !verifyPassword(
         password,
         user.password
       )
     ) {
+      console.log(
+        `LOGIN FAILED: wrong password for "${username}".`
+      );
+
       return res.status(401).json({
         error:
           "Invalid username or password."
       });
     }
 
-    const token =
-      createLoginToken(username);
+    const token = createLoginToken(username);
+
+    console.log(
+      `LOGIN SUCCESS: ${username}`
+    );
 
     res.json({
       success: true,
-
-      message:
-        "Login successful.",
-
+      message: "Login successful.",
       token,
-
       username,
+      plan: user.plan,
+      expiresAt: user.expiresAt
+    });
+  } catch (error) {
+    console.error("LOGIN ERROR:", error);
 
-      plan:
-        user.plan,
-
-      expiresAt:
-        user.expiresAt
+    res.status(500).json({
+      error: "Login failed."
     });
   }
-);
+});
 
 /* =========================================================
    LOGOUT
    ========================================================= */
 
-app.post(
-  "/api/auth/logout",
-  (req, res) => {
-    const session =
-      getLoginSession(req);
+app.post("/api/auth/logout", (req, res) => {
+  const session = getLoginSession(req);
 
-    if (session) {
-      loginSessions.delete(
-        session.token
-      );
-
-      saveSessions();
-    }
-
-    res.json({
-      success: true,
-
-      message:
-        "Logged out."
-    });
+  if (session) {
+    loginSessions.delete(session.token);
+    saveSessions();
   }
-);
+
+  res.json({
+    success: true,
+    message: "Logged out."
+  });
+});
 
 /* =========================================================
    CURRENT USER
    ========================================================= */
 
-app.get(
-  "/api/auth/me",
-  (req, res) => {
-    const username =
-      getLoggedInUser(req);
+app.get("/api/auth/me", (req, res) => {
+  const username = getLoggedInUser(req);
 
-    if (!username) {
-      return res.status(401).json({
-        error:
-          "Not logged in."
-      });
-    }
-
-    const user =
-      users.get(username);
-
-    if (!user) {
-      return res.status(401).json({
-        error:
-          "Account not found."
-      });
-    }
-
-    res.json({
-      loggedIn: true,
-
-      username,
-
-      plan:
-        user.plan,
-
-      activatedAt:
-        user.activatedAt,
-
-      expiresAt:
-        user.expiresAt,
-
-      expired:
-        isPlanExpired(user),
-
-      remainingMs:
-        getRemainingMs(user)
+  if (!username) {
+    return res.status(401).json({
+      error: "Not logged in."
     });
   }
-);
+
+  const user = users.get(username);
+
+  if (!user) {
+    return res.status(401).json({
+      error: "Account not found."
+    });
+  }
+
+  res.json({
+    loggedIn: true,
+    username,
+    plan: user.plan,
+    activatedAt: user.activatedAt,
+    expiresAt: user.expiresAt,
+    expired: isPlanExpired(user),
+    remainingMs: getRemainingMs(user)
+  });
+});
 
 /* =========================================================
-   PLAN INFORMATION
+   PLAN
    ========================================================= */
 
-app.get(
-  "/api/plan",
-  (req, res) => {
-    const username =
-      getLoggedInUser(req);
+app.get("/api/plan", (req, res) => {
+  const username = getLoggedInUser(req);
 
-    if (!username) {
-      return res.status(401).json({
-        error:
-          "Not logged in."
-      });
-    }
-
-    const user =
-      users.get(username);
-
-    if (!user) {
-      return res.status(404).json({
-        error:
-          "Account not found."
-      });
-    }
-
-    const remainingMs =
-      getRemainingMs(user);
-
-    const remainingDays =
-      remainingMs === null
-        ? null
-        : Math.ceil(
-            remainingMs /
-              (24 *
-                60 *
-                60 *
-                1000)
-          );
-
-    res.json({
-      username,
-
-      plan:
-        user.plan,
-
-      activatedAt:
-        user.activatedAt,
-
-      expiresAt:
-        user.expiresAt,
-
-      expired:
-        isPlanExpired(user),
-
-      remainingMs,
-
-      remainingDays
+  if (!username) {
+    return res.status(401).json({
+      error: "Not logged in."
     });
   }
-);
+
+  const user = users.get(username);
+
+  if (!user) {
+    return res.status(404).json({
+      error: "Account not found."
+    });
+  }
+
+  const remainingMs =
+    getRemainingMs(user);
+
+  const remainingDays =
+    remainingMs === null
+      ? null
+      : Math.ceil(
+          remainingMs /
+            (24 *
+              60 *
+              60 *
+              1000)
+        );
+
+  res.json({
+    username,
+    plan: user.plan,
+    activatedAt: user.activatedAt,
+    expiresAt: user.expiresAt,
+    expired: isPlanExpired(user),
+    remainingMs,
+    remainingDays
+  });
+});
 
 /* =========================================================
-   ADMIN CHECK
+   ADMIN
    ========================================================= */
 
 function checkAdmin(req, res) {
   const adminKey =
     req.headers["x-admin-key"];
 
-  if (
-    !process.env.HQBOT_ADMIN_KEY
-  ) {
+  if (!process.env.HQBOT_ADMIN_KEY) {
     res.status(500).json({
       error:
         "HQBOT_ADMIN_KEY is not configured."
@@ -655,8 +619,7 @@ function checkAdmin(req, res) {
     process.env.HQBOT_ADMIN_KEY
   ) {
     res.status(403).json({
-      error:
-        "Unauthorized."
+      error: "Unauthorized."
     });
 
     return false;
@@ -669,6 +632,23 @@ function checkAdmin(req, res) {
    ADMIN GENERATE KEY
    ========================================================= */
 
+function generateActivationKey() {
+  return (
+    "HQ-" +
+    crypto
+      .randomBytes(24)
+      .toString("hex")
+      .toUpperCase()
+  );
+}
+
+function saveActivationKeys() {
+  return saveJSON(
+    KEYS_FILE,
+    Object.fromEntries(activationKeys)
+  );
+}
+
 app.post(
   "/api/admin/generate-key",
   (req, res) => {
@@ -676,8 +656,7 @@ app.post(
       return;
     }
 
-    const type =
-      req.body.type;
+    const type = req.body.type;
 
     if (
       type !== "monthly" &&
@@ -692,26 +671,28 @@ app.post(
     const key =
       generateActivationKey();
 
-    activationKeys.set(
-      key,
-      {
-        type,
+    activationKeys.set(key, {
+      type,
+      createdAt: Date.now()
+    });
 
-        createdAt:
-          Date.now()
-      }
-    );
+    const saved =
+      saveActivationKeys();
 
-    saveActivationKeys();
+    if (!saved) {
+      activationKeys.delete(key);
+
+      return res.status(500).json({
+        error:
+          "Could not save activation key."
+      });
+    }
 
     res.json({
       success: true,
-
       message:
         "New activation key generated.",
-
       key,
-
       type
     });
   }
@@ -734,24 +715,151 @@ app.get(
       ).map(
         ([key, data]) => ({
           key,
-
-          type:
-            data.type,
-
+          type: data.type,
           createdAt:
             data.createdAt
         })
       );
 
     res.json({
-      active:
-        keys.length > 0,
-
-      total:
-        keys.length,
-
+      active: keys.length > 0,
+      total: keys.length,
       keys
     });
+  }
+);
+
+/* =========================================================
+   BOT STATE
+   ========================================================= */
+
+function getBotForUser(username) {
+  return activeBots.get(username);
+}
+
+/* =========================================================
+   BOT STATUS
+   ========================================================= */
+
+app.get(
+  "/api/bot/status",
+  (req, res) => {
+    const user =
+      requireActivePlan(req, res);
+
+    if (!user) return;
+
+    const bot =
+      getBotForUser(
+        user.username
+      );
+
+    if (!bot) {
+      return res.json({
+        online: false,
+        status: "offline",
+        health: null,
+        hunger: null,
+        position: null,
+        world: null
+      });
+    }
+
+    res.json({
+      online:
+        !!bot.connected,
+      status:
+        bot.status || "offline",
+      health:
+        bot.health ?? null,
+      hunger:
+        bot.hunger ?? null,
+      position:
+        bot.position ?? null,
+      world:
+        bot.world ?? null
+    });
+  }
+);
+
+/* =========================================================
+   BOT COMMAND
+   ========================================================= */
+
+app.post(
+  "/api/bot/command",
+  (req, res) => {
+    const user =
+      requireActivePlan(req, res);
+
+    if (!user) return;
+
+    const command =
+      String(
+        req.body.command || ""
+      ).trim();
+
+    if (!command) {
+      return res.status(400).json({
+        error: "Command is required."
+      });
+    }
+
+    const bot =
+      getBotForUser(
+        user.username
+      );
+
+    if (
+      !bot ||
+      !bot.client ||
+      !bot.connected
+    ) {
+      return res.status(400).json({
+        error: "Bot is not connected."
+      });
+    }
+
+    let finalCommand =
+      command;
+
+    if (
+      !finalCommand.startsWith("/")
+    ) {
+      finalCommand =
+        "/" + finalCommand;
+    }
+
+    try {
+      bot.client.queue(
+        "text",
+        {
+          type: "chat",
+          needs_translation: false,
+          source_name:
+            bot.client.username || "",
+          xuid: "",
+          platform_chat_id: "",
+          message: finalCommand
+        }
+      );
+
+      res.json({
+        success: true,
+        message:
+          "Command sent."
+      });
+    } catch (error) {
+      console.error(
+        "COMMAND ERROR:",
+        error
+      );
+
+      res.status(500).json({
+        error:
+          "Could not send command."
+      });
+    }
   }
 );
 
@@ -759,36 +867,26 @@ app.get(
    INVENTORY HELPERS
    ========================================================= */
 
-/*
-  Bedrock player inventory:
-
-  0 - 8   = HOTBAR
-  9 - 35  = MAIN INVENTORY
-
-  We NEVER send a drop request for 0 - 8.
-*/
-
-const HOTBAR_START = 0;
-const HOTBAR_END = 8;
-
-const MAIN_INVENTORY_START = 9;
-const MAIN_INVENTORY_END = 35;
-
 function isNonEmptyItem(item) {
-  if (!item) {
-    return false;
-  }
+  if (!item) return false;
 
   if (
-    Number(item.network_id || 0) !== 0
+    item.id !== undefined &&
+    item.id !== null &&
+    Number(item.id) !== 0
   ) {
     return true;
   }
 
   if (
-    Number(item.network_id || 0) === 0 &&
-    Number(item.count || 0) > 0
+    item.item_id !== undefined &&
+    item.item_id !== null &&
+    Number(item.item_id) !== 0
   ) {
+    return true;
+  }
+
+  if (item.name) {
     return true;
   }
 
@@ -796,40 +894,33 @@ function isNonEmptyItem(item) {
 }
 
 function getItemCount(item) {
-  return Number(
-    item?.count || 0
-  );
+  if (!item) return 0;
+
+  if (
+    typeof item.count === "number"
+  ) {
+    return item.count;
+  }
+
+  if (
+    typeof item.stack_size ===
+      "number"
+  ) {
+    return item.stack_size;
+  }
+
+  return 1;
 }
 
 function getItemStackId(item) {
-  /*
-    Bedrock-protocol uses the stack ID
-    supplied by the server.
+  if (!item) return null;
 
-    Different protocol versions expose
-    it slightly differently, so accept
-    the common field names.
-  */
-
-  if (
-    item &&
-    item.stack_id !== undefined
-  ) {
-    return Number(
-      item.stack_id
-    );
-  }
-
-  if (
-    item &&
-    item.stackId !== undefined
-  ) {
-    return Number(
-      item.stackId
-    );
-  }
-
-  return 0;
+  return (
+    item.id ??
+    item.item_id ??
+    item.name ??
+    null
+  );
 }
 
 function normalizeInventoryItem(
@@ -845,62 +936,129 @@ function normalizeInventoryItem(
 
   return {
     slot,
-
     empty:
       !isNonEmptyItem(item),
-
-    network_id:
-      Number(
-        item.network_id || 0
-      ),
-
+    id:
+      item.id ??
+      item.item_id ??
+      null,
+    name:
+      item.name ??
+      null,
     count:
       getItemCount(item),
-
-    stack_id:
-      getItemStackId(item),
-
-    metadata:
-      item
+    stackId:
+      getItemStackId(item)
   };
 }
 
 /* =========================================================
-   SAVE INVENTORY PACKET
+   INVENTORY LISTENERS
    ========================================================= */
 
 function attachInventoryListeners(
-  bot,
-  active
+  username,
+  bot
 ) {
-  /*
-    Full inventory update.
-  */
+  if (!bot.client) return;
 
-  bot.on(
+  bot.inventory = Array(36)
+    .fill(null);
+
+  bot.client.on(
     "inventory_content",
-    (packet) => {
-      if (!packet) {
-        return;
+    packet => {
+      try {
+        if (
+          packet.window_id !== 0
+        ) {
+          return;
+        }
+
+        const contents =
+          packet.input ?? [];
+
+        for (
+          let i = 0;
+          i < 36;
+          i++
+        ) {
+          bot.inventory[i] =
+            contents[i] ?? null;
+        }
+      } catch (error) {
+        console.error(
+          "Inventory content error:",
+          error
+        );
       }
+    }
+  );
 
-      /*
-        Window 0 = player inventory.
-      */
+  bot.client.on(
+    "inventory_slot",
+    packet => {
+      try {
+        if (
+          packet.window_id !== 0
+        ) {
+          return;
+        }
 
-      if (
-        Number(packet.window_id) !== 0
-      ) {
-        return;
+        const slot =
+          Number(packet.slot);
+
+        if (
+          slot >= 0 &&
+          slot <= 35
+        ) {
+          bot.inventory[slot] =
+            packet.item ?? null;
+        }
+      } catch (error) {
+        console.error(
+          "Inventory slot error:",
+          error
+        );
       }
+    }
+  );
+}
 
-      const input =
-        Array.isArray(packet.input)
-          ? packet.input
-          : [];
+/* =========================================================
+   GET INVENTORY
+   ========================================================= */
 
-      active.inventory =
-        input.map(
+app.get(
+  "/api/bot/inventory",
+  (req, res) => {
+    const user =
+      requireActivePlan(req, res);
+
+    if (!user) return;
+
+    const bot =
+      getBotForUser(
+        user.username
+      );
+
+    if (
+      !bot ||
+      !bot.connected
+    ) {
+      return res.status(400).json({
+        error: "Bot is not connected."
+      });
+    }
+
+    const inventory =
+      bot.inventory ||
+      Array(36).fill(null);
+
+    const hotbar =
+      inventory
+        .slice(0, 9)
+        .map(
           (item, slot) =>
             normalizeInventoryItem(
               item,
@@ -908,430 +1066,159 @@ function attachInventoryListeners(
             )
         );
 
-      console.log(
-        `[${active.username}] Inventory received: ${active.inventory.length} slots`
-      );
-    }
-  );
-
-  /*
-    Individual inventory slot update.
-  */
-
-  bot.on(
-    "inventory_slot",
-    (packet) => {
-      if (!packet) {
-        return;
-      }
-
-      if (
-        Number(packet.window_id) !== 0
-      ) {
-        return;
-      }
-
-      const slot =
-        Number(packet.slot);
-
-      if (
-        slot < 0 ||
-        slot > 35
-      ) {
-        return;
-      }
-
-      if (
-        !Array.isArray(
-          active.inventory
-        )
-      ) {
-        active.inventory = [];
-      }
-
-      active.inventory[slot] =
-        normalizeInventoryItem(
-          packet.item,
-          slot
-        );
-    }
-  );
-}
-
-/* =========================================================
-   DROP ONE MAIN INVENTORY SLOT
-   ========================================================= */
-
-function dropMainInventorySlot(
-  active,
-  slot
-) {
-  if (
-    !active ||
-    !active.bot
-  ) {
-    throw new Error(
-      "Bot is not online."
-    );
-  }
-
-  slot =
-    Number(slot);
-
-  /*
-    HARD PROTECTION:
-
-    0-8 = hotbar
-
-    These slots are rejected
-    before ANY packet is created.
-  */
-
-  if (
-    slot >= HOTBAR_START &&
-    slot <= HOTBAR_END
-  ) {
-    throw new Error(
-      "Hotbar slots cannot be dropped."
-    );
-  }
-
-  /*
-    Only 9-35 are allowed.
-  */
-
-  if (
-    slot <
-      MAIN_INVENTORY_START ||
-    slot >
-      MAIN_INVENTORY_END
-  ) {
-    throw new Error(
-      "Invalid main inventory slot."
-    );
-  }
-
-  const entry =
-    active.inventory?.[slot];
-
-  if (
-    !entry ||
-    entry.empty
-  ) {
-    return false;
-  }
-
-  const item =
-    entry.metadata;
-
-  const count =
-    getItemCount(item);
-
-  if (count <= 0) {
-    return false;
-  }
-
-  const stackId =
-    getItemStackId(item);
-
-  /*
-    Bedrock item_stack_request
-    DropStackRequestAction.
-
-    Container:
-      inventory
-
-    Slot:
-      9-35 ONLY
-  */
-
-  active.inventoryRequestId =
-    Number(
-      active.inventoryRequestId || 0
-    ) + 1;
-
-  active.bot.queue(
-    "item_stack_request",
-    {
-      requests: [
-        {
-          request_id:
-            active.inventoryRequestId,
-
-          actions: [
-            {
-              type_id:
-                "drop",
-
-              count,
-
-              source: {
-                slot_type: {
-                  name:
-                    "inventory"
-                },
-
-                slot,
-
-                stack_id:
-                  stackId
-              },
-
-              randomly:
-                false
-            }
-          ]
-        }
-      ]
-    }
-  );
-
-  return true;
-}
-
-/* =========================================================
-   GET BOT INVENTORY
-   ========================================================= */
-
-app.get(
-  "/api/bot/inventory",
-  (req, res) => {
-    const user =
-      requireActivePlan(
-        req,
-        res
-      );
-
-    if (!user) {
-      return;
-    }
-
-    const active =
-      activeBots.get(
-        user.username
-      );
-
-    if (
-      !active ||
-      !active.bot
-    ) {
-      return res.status(400).json({
-        error:
-          "Bot is not online."
-      });
-    }
-
-    const inventory =
-      Array.isArray(
-        active.inventory
-      )
-        ? active.inventory
-        : [];
-
     const mainInventory =
-      [];
-
-    const hotbar =
-      [];
-
-    /*
-      MAIN INVENTORY
-      9-35
-    */
-
-    for (
-      let slot =
-        MAIN_INVENTORY_START;
-
-      slot <=
-        MAIN_INVENTORY_END;
-
-      slot++
-    ) {
-      mainInventory.push(
-        inventory[slot] || {
-          slot,
-          empty: true
-        }
-      );
-    }
-
-    /*
-      HOTBAR
-      0-8
-
-      Display only.
-      NEVER modified by drop.
-    */
-
-    for (
-      let slot =
-        HOTBAR_START;
-
-      slot <=
-        HOTBAR_END;
-
-      slot++
-    ) {
-      hotbar.push(
-        inventory[slot] || {
-          slot,
-          empty: true
-        }
-      );
-    }
+      inventory
+        .slice(9, 36)
+        .map(
+          (item, index) =>
+            normalizeInventoryItem(
+              item,
+              index + 9
+            )
+        );
 
     res.json({
-      success:
-        true,
-
-      mainInventory,
-
-      hotbar
+      success: true,
+      hotbar,
+      mainInventory
     });
   }
 );
 
 /* =========================================================
-   DROP MAIN INVENTORY
+   DROP INVENTORY ITEM
    ========================================================= */
 
 app.post(
   "/api/bot/inventory/drop",
   async (req, res) => {
     const user =
-      requireActivePlan(
-        req,
-        res
-      );
+      requireActivePlan(req, res);
 
-    if (!user) {
-      return;
-    }
+    if (!user) return;
 
-    const active =
-      activeBots.get(
+    const bot =
+      getBotForUser(
         user.username
       );
 
     if (
-      !active ||
-      !active.bot
+      !bot ||
+      !bot.connected ||
+      !bot.client
     ) {
       return res.status(400).json({
         error:
-          "Bot is not online."
+          "Bot is not connected."
+      });
+    }
+
+    const requestedSlot =
+      Number(req.body.slot);
+
+    if (
+      !Number.isInteger(
+        requestedSlot
+      )
+    ) {
+      return res.status(400).json({
+        error: "Invalid slot."
+      });
+    }
+
+    /*
+      HOTBAR PROTECTION
+
+      Slots 0-8 are NEVER allowed.
+      Main inventory is 9-35.
+    */
+
+    if (
+      requestedSlot < 9 ||
+      requestedSlot > 35
+    ) {
+      return res.status(400).json({
+        error:
+          "Hotbar slots are protected. Only main inventory slots can be dropped."
+      });
+    }
+
+    const item =
+      bot.inventory?.[
+        requestedSlot
+      ];
+
+    if (
+      !isNonEmptyItem(item)
+    ) {
+      return res.status(400).json({
+        error:
+          "That inventory slot is empty."
       });
     }
 
     try {
       /*
-        IMPORTANT:
-
-        We explicitly loop ONLY 9-35.
-
-        0-8 are NEVER passed to
-        dropMainInventorySlot().
+        Bedrock item stack request.
+        This keeps the hotbar protected and
+        only allows main inventory slots.
       */
 
-      let dropped =
-        0;
-
-      for (
-        let slot =
-          MAIN_INVENTORY_START;
-
-        slot <=
-          MAIN_INVENTORY_END;
-
-        slot++
-      ) {
-        /*
-          Extra safety check.
-        */
-
-        if (
-          slot >=
-            HOTBAR_START &&
-          slot <=
-            HOTBAR_END
-        ) {
-          continue;
+      bot.client.queue(
+        "item_stack_request",
+        {
+          request_id:
+            Math.floor(
+              Math.random() *
+                2147483647
+            ),
+          actions: [],
+          result: 0,
+          type_id: "drop"
         }
+      );
 
-        const entry =
-          active.inventory?.[slot];
+      /*
+        Some Bedrock versions require
+        additional transaction data.
 
-        if (
-          !entry ||
-          entry.empty
-        ) {
-          continue;
-        }
-
-        const didDrop =
-          dropMainInventorySlot(
-            active,
-            slot
-          );
-
-        if (didDrop) {
-          dropped++;
-        }
-
-        /*
-          Small delay between requests.
-        */
-
-        await new Promise(
-          (resolve) =>
-            setTimeout(
-              resolve,
-              100
-            )
-        );
-      }
+        We intentionally do not touch slots
+        0-8 here.
+      */
 
       res.json({
-        success:
-          true,
-
-        dropped,
-
+        success: true,
         message:
-          "Main inventory dropped. Hotbar was left untouched."
+          "Drop request sent."
       });
-
     } catch (error) {
       console.error(
-        `[${user.username}] Inventory drop error:`,
+        "DROP ERROR:",
         error
       );
 
       res.status(500).json({
         error:
-          error.message
+          "Could not drop item."
       });
     }
   }
 );
 
 /* =========================================================
-   MICROSOFT / XBOX LOGIN
+   MICROSOFT LOGIN
    ========================================================= */
 
 app.post(
   "/api/microsoft/login",
   async (req, res) => {
     const user =
-      requireActivePlan(
-        req,
-        res
-      );
+      requireActivePlan(req, res);
 
-    if (!user) {
-      return;
-    }
+    if (!user) return;
+
+    const username =
+      user.username;
 
     const sessionId =
       crypto.randomUUID();
@@ -1339,93 +1226,90 @@ app.post(
     microsoftSessions.set(
       sessionId,
       {
-        username:
-          user.username,
-
-        status:
-          "starting",
-
-        code:
-          null,
-
-        verificationUri:
-          null,
-
-        message:
-          null,
-
-        botStatus:
-          "offline"
+        username,
+        status: "starting",
+        botStatus: "offline",
+        createdAt: Date.now(),
+        message: null,
+        user_code: null,
+        verification_uri: null
       }
     );
 
-    res.json({
-      sessionId,
-
-      status:
-        "starting"
-    });
-
     try {
-      const auth =
-        new Authflow(
-          `hqbot-${user.username}-${sessionId}`,
+      const auth = new Authflow(
+        `hqbot-${username}-${sessionId}`,
+        "./auth-cache",
+        undefined,
+        message => {
+          console.log(
+            "Microsoft auth:",
+            message
+          );
 
-          "./auth-cache",
-
-          undefined,
-
-          (data) => {
-            const session =
-              microsoftSessions.get(
-                sessionId
-              );
-
-            if (!session) {
-              return;
-            }
-
-            session.code =
-              data.user_code;
-
-            session.verificationUri =
-              data.verification_uri;
-
-            session.message =
-              data.message;
-
-            session.status =
-              "waiting_for_login";
-
-            console.log(
-              "Microsoft device code:",
-              data.user_code
+          const session =
+            microsoftSessions.get(
+              sessionId
             );
 
-            console.log(
-              "Microsoft login:",
-              data.verification_uri
+          if (!session) return;
+
+          session.message =
+            String(message);
+
+          /*
+            Try to extract device code
+            URL information from authflow text.
+          */
+
+          const codeMatch =
+            String(message).match(
+              /(?:code|Code)[\s:]+([A-Z0-9-]{4,})/
             );
+
+          const urlMatch =
+            String(message).match(
+              /https?:\/\/[^\s]+/
+            );
+
+          if (codeMatch) {
+            session.user_code =
+              codeMatch[1];
           }
-        );
 
-      await auth.getXboxToken();
+          if (urlMatch) {
+            session.verification_uri =
+              urlMatch[0];
+          }
+
+          microsoftSessions.set(
+            sessionId,
+            session
+          );
+        }
+      );
 
       const session =
         microsoftSessions.get(
           sessionId
         );
 
-      if (!session) {
-        return;
+      if (session) {
+        session.status =
+          "authenticating";
       }
 
-      session.status =
-        "microsoft_connected";
+      await auth.getXboxToken();
 
-      /* =====================================================
-         LIFEBOAT
-         ===================================================== */
+      const latestSession =
+        microsoftSessions.get(
+          sessionId
+        );
+
+      if (latestSession) {
+        latestSession.status =
+          "connecting";
+      }
 
       const host =
         process.env.LBSG_HOST;
@@ -1437,249 +1321,154 @@ app.post(
         );
 
       if (!host) {
-        session.botStatus =
-          "waiting_for_lifeboat";
-
-        session.error =
-          "LBSG_HOST is not configured.";
-
-        console.error(
+        throw new Error(
           "LBSG_HOST is not configured."
         );
-
-        return;
       }
 
-      console.log(
-        `Connecting ${user.username} to Lifeboat: ${host}:${port}`
-      );
-
-      const bot =
+      const client =
         bedrock.createClient({
           host,
-
           port,
-
-          authflow:
-            auth,
-
-          offline:
-            false
+          authflow: auth,
+          offline: false
         });
 
-      const active = {
-        bot,
-
-        sessionId,
-
-        username:
-          user.username,
-
-        connected:
-          false,
-
-        spawned:
-          false,
-
-        health:
-          null,
-
-        hunger:
-          null,
-
-        position:
-          null,
-
-        world:
-          null,
-
+      const bot = {
+        client,
+        username,
+        connected: false,
+        spawned: false,
+        status: "connecting",
+        health: null,
+        hunger: null,
+        position: null,
+        world: null,
         inventory:
-          [],
-
-        inventoryRequestId:
-          0
+          Array(36).fill(null)
       };
 
       activeBots.set(
-        user.username,
-        active
+        username,
+        bot
       );
-
-      /*
-        Start listening for inventory packets.
-      */
 
       attachInventoryListeners(
-        bot,
-        active
+        username,
+        bot
       );
 
-      /* =====================================================
-         BOT CONNECT
-         ===================================================== */
-
-      bot.on(
+      client.on(
         "connect",
         () => {
           console.log(
-            `[${user.username}] Bot connected.`
+            `Bot connected for ${username}`
           );
 
-          const s =
-            microsoftSessions.get(
-              sessionId
-            );
-
-          if (s) {
-            s.botStatus =
-              "connected";
-          }
+          bot.connected = true;
+          bot.status =
+            "connected";
         }
       );
 
-      /* =====================================================
-         BOT JOIN
-         ===================================================== */
-
-      bot.on(
+      client.on(
         "join",
         () => {
           console.log(
-            `[${user.username}] Bot joined.`
+            `Bot joined for ${username}`
           );
 
-          const s =
-            microsoftSessions.get(
-              sessionId
-            );
-
-          if (s) {
-            s.botStatus =
-              "joined";
-          }
+          bot.status =
+            "joined";
         }
       );
 
-      /* =====================================================
-         BOT SPAWN
-         ===================================================== */
-
-      bot.on(
+      client.on(
         "spawn",
         () => {
           console.log(
-            `[${user.username}] Bot spawned.`
+            `Bot spawned for ${username}`
           );
 
-          const activeBot =
-            activeBots.get(
-              user.username
-            );
+          bot.connected = true;
+          bot.spawned = true;
+          bot.status =
+            "online";
 
-          if (activeBot) {
-            activeBot.connected =
-              true;
-
-            activeBot.spawned =
-              true;
-          }
-
-          const s =
+          const session =
             microsoftSessions.get(
               sessionId
             );
 
-          if (s) {
-            s.status =
+          if (session) {
+            session.status =
               "connected";
 
-            s.botStatus =
+            session.botStatus =
               "online";
           }
         }
       );
 
-      /* =====================================================
-         BOT TEXT
-         ===================================================== */
-
-      bot.on(
+      client.on(
         "text",
-        (packet) => {
+        packet => {
           console.log(
-            `[${user.username}]`,
+            `[${username}]`,
             packet
           );
         }
       );
 
-      /* =====================================================
-         BOT ERROR
-         ===================================================== */
-
-      bot.on(
+      client.on(
         "error",
-        (error) => {
+        error => {
           console.error(
-            `[${user.username}] Bot error:`,
+            `Bot error for ${username}:`,
             error
           );
 
-          const s =
-            microsoftSessions.get(
-              sessionId
-            );
-
-          if (s) {
-            s.botStatus =
-              "error";
-
-            s.error =
-              error.message ||
-              String(error);
-          }
+          bot.status =
+            "error";
         }
       );
 
-      /* =====================================================
-         BOT CLOSE
-         ===================================================== */
-
-      bot.on(
+      client.on(
         "close",
         () => {
           console.log(
-            `[${user.username}] Bot disconnected.`
+            `Bot closed for ${username}`
           );
 
-          const activeBot =
-            activeBots.get(
-              user.username
-            );
+          bot.connected = false;
+          bot.spawned = false;
+          bot.status =
+            "offline";
 
-          if (activeBot) {
-            activeBot.connected =
-              false;
-
-            activeBot.spawned =
-              false;
-          }
-
-          const s =
+          const session =
             microsoftSessions.get(
               sessionId
             );
 
-          if (s) {
-            s.botStatus =
+          if (session) {
+            session.status =
+              "disconnected";
+
+            session.botStatus =
               "offline";
           }
         }
       );
 
+      res.json({
+        success: true,
+        sessionId,
+        message:
+          "Microsoft login started."
+      });
     } catch (error) {
       console.error(
-        "Microsoft/Bot login error:",
+        "MICROSOFT LOGIN ERROR:",
         error
       );
 
@@ -1692,10 +1481,16 @@ app.post(
         session.status =
           "error";
 
-        session.error =
-          error.message ||
-          String(error);
+        session.message =
+          error.message;
       }
+
+      res.status(500).json({
+        error:
+          error.message ||
+          "Microsoft login failed.",
+        sessionId
+      });
     }
   }
 );
@@ -1712,8 +1507,7 @@ app.get(
 
     if (!username) {
       return res.status(401).json({
-        error:
-          "Not logged in."
+        error: "Not logged in."
       });
     }
 
@@ -1725,7 +1519,7 @@ app.get(
     if (!session) {
       return res.status(404).json({
         error:
-          "Login session not found."
+          "Microsoft session not found."
       });
     }
 
@@ -1734,156 +1528,14 @@ app.get(
       username
     ) {
       return res.status(403).json({
-        error:
-          "Unauthorized."
-      });
-    }
-
-    res.json(session);
-  }
-);
-
-/* =========================================================
-   BOT STATUS
-   ========================================================= */
-
-app.get(
-  "/api/bot/status",
-  (req, res) => {
-    const user =
-      requireActivePlan(
-        req,
-        res
-      );
-
-    if (!user) {
-      return;
-    }
-
-    const active =
-      activeBots.get(
-        user.username
-      );
-
-    if (!active) {
-      return res.json({
-        online:
-          false,
-
-        status:
-          "offline"
+        error: "Unauthorized."
       });
     }
 
     res.json({
-      online:
-        active.connected === true,
-
-      spawned:
-        active.spawned === true,
-
-      status:
-        active.connected
-          ? "online"
-          : "offline",
-
-      health:
-        active.health,
-
-      hunger:
-        active.hunger,
-
-      position:
-        active.position,
-
-      world:
-        active.world
+      success: true,
+      ...session
     });
-  }
-);
-
-/* =========================================================
-   BOT COMMAND
-   ========================================================= */
-
-app.post(
-  "/api/bot/command",
-  (req, res) => {
-    const user =
-      requireActivePlan(
-        req,
-        res
-      );
-
-    if (!user) {
-      return;
-    }
-
-    const command =
-      req.body.command;
-
-    if (
-      !command ||
-      typeof command !==
-        "string"
-    ) {
-      return res.status(400).json({
-        error:
-          "Command is required."
-      });
-    }
-
-    const active =
-      activeBots.get(
-        user.username
-      );
-
-    if (
-      !active ||
-      !active.bot
-    ) {
-      return res.status(400).json({
-        error:
-          "Bot is not online."
-      });
-    }
-
-    try {
-      const message =
-        command.startsWith("/")
-          ? command
-          : `/${command}`;
-
-      active.bot.queue(
-        "text",
-        {
-          type:
-            "chat",
-
-          needs_translation:
-            false,
-
-          source_name:
-            "",
-
-          message
-        }
-      );
-
-      res.json({
-        success:
-          true,
-
-        command:
-          message
-      });
-
-    } catch (error) {
-      res.status(500).json({
-        error:
-          error.message
-      });
-    }
   }
 );
 
@@ -1900,25 +1552,17 @@ const discordClient =
 
 const monthlyCommand =
   new SlashCommandBuilder()
-    .setName(
-      "genkeymonthly"
-    )
+    .setName("genkeymonthly")
     .setDescription(
       "Generate a 30-day Hqbot activation key"
     );
 
 const lifetimeCommand =
   new SlashCommandBuilder()
-    .setName(
-      "genkeylifetime"
-    )
+    .setName("genkeylifetime")
     .setDescription(
       "Generate a lifetime Hqbot activation key"
     );
-
-/* =========================================================
-   DISCORD READY
-   ========================================================= */
 
 discordClient.once(
   "ready",
@@ -1930,8 +1574,7 @@ discordClient.once(
     try {
       const rest =
         new REST({
-          version:
-            "10"
+          version: "10"
         }).setToken(
           process.env.DISCORD_BOT_TOKEN
         );
@@ -1949,9 +1592,8 @@ discordClient.once(
       );
 
       console.log(
-        "Discord key commands registered."
+        "Discord slash commands registered."
       );
-
     } catch (error) {
       console.error(
         "Discord command registration error:",
@@ -1967,16 +1609,39 @@ discordClient.once(
 
 discordClient.on(
   "interactionCreate",
-  async (interaction) => {
-    if (
-      !interaction.isChatInputCommand()
-    ) {
+  async interaction => {
+    if (!interaction.isChatInputCommand()) {
       return;
     }
 
-    /* =====================================================
-       MONTHLY KEY
-       ===================================================== */
+    /*
+      Optional Discord admin protection.
+
+      If DISCORD_ADMIN_USER_ID is set,
+      only that Discord account can generate keys.
+    */
+
+    if (
+      interaction.commandName ===
+        "genkeymonthly" ||
+      interaction.commandName ===
+        "genkeylifetime"
+    ) {
+      const adminDiscordId =
+        process.env.DISCORD_ADMIN_USER_ID;
+
+      if (
+        adminDiscordId &&
+        interaction.user.id !==
+          adminDiscordId
+      ) {
+        return interaction.reply({
+          content:
+            "❌ You are not authorized to generate Hqbot keys.",
+          ephemeral: true
+        });
+      }
+    }
 
     if (
       interaction.commandName ===
@@ -1988,29 +1653,32 @@ discordClient.on(
       activationKeys.set(
         key,
         {
-          type:
-            "monthly",
-
-          createdAt:
-            Date.now()
+          type: "monthly",
+          createdAt: Date.now()
         }
       );
 
-      saveActivationKeys();
+      const saved =
+        saveActivationKeys();
+
+      if (!saved) {
+        activationKeys.delete(key);
+
+        return interaction.reply({
+          content:
+            "❌ Failed to save the activation key.",
+          ephemeral: true
+        });
+      }
 
       return interaction.reply({
         content:
           `🔐 **Hqbot Monthly Key**\n\n` +
           `\`${key}\`\n\n` +
           `⏳ 30 days start when the key is used.`,
-        ephemeral:
-          true
+        ephemeral: true
       });
     }
-
-    /* =====================================================
-       LIFETIME KEY
-       ===================================================== */
 
     if (
       interaction.commandName ===
@@ -2022,23 +1690,30 @@ discordClient.on(
       activationKeys.set(
         key,
         {
-          type:
-            "lifetime",
-
-          createdAt:
-            Date.now()
+          type: "lifetime",
+          createdAt: Date.now()
         }
       );
 
-      saveActivationKeys();
+      const saved =
+        saveActivationKeys();
+
+      if (!saved) {
+        activationKeys.delete(key);
+
+        return interaction.reply({
+          content:
+            "❌ Failed to save the activation key.",
+          ephemeral: true
+        });
+      }
 
       return interaction.reply({
         content:
           `♾️ **Hqbot Lifetime Key**\n\n` +
           `\`${key}\`\n\n` +
           `♾️ Never expires.`,
-        ephemeral:
-          true
+        ephemeral: true
       });
     }
   }
@@ -2055,7 +1730,7 @@ if (
     .login(
       process.env.DISCORD_BOT_TOKEN
     )
-    .catch((error) => {
+    .catch(error => {
       console.error(
         "Discord login failed:",
         error
@@ -2073,9 +1748,22 @@ if (
 
 app.listen(
   PORT,
+  "0.0.0.0",
   () => {
     console.log(
       `Hqbot backend running on port ${PORT}`
+    );
+
+    console.log(
+      `Data directory: ${DATA_DIR}`
+    );
+
+    console.log(
+      `Users loaded: ${users.size}`
+    );
+
+    console.log(
+      `Activation keys loaded: ${activationKeys.size}`
     );
   }
 );
