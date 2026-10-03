@@ -2,6 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const crypto = require("crypto");
 const { Authflow } = require("prismarine-auth");
+const {
+  Client,
+  GatewayIntentBits,
+  REST,
+  Routes,
+  SlashCommandBuilder
+} = require("discord.js");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,19 +16,15 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-/* =========================
-   STORAGE
-========================= */
-
 const users = new Map();
 const loginSessions = new Map();
 const microsoftSessions = new Map();
 
 let activeActivationKey = null;
 
-/* =========================
-   PASSWORD FUNCTIONS
-========================= */
+// =========================
+// PASSWORD SECURITY
+// =========================
 
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -46,9 +49,9 @@ function verifyPassword(password, storedPassword) {
   );
 }
 
-/* =========================
-   AUTH SESSION
-========================= */
+// =========================
+// LOGIN SESSIONS
+// =========================
 
 function createLoginToken(username) {
   const token = crypto.randomBytes(32).toString("hex");
@@ -78,9 +81,25 @@ function getLoggedInUser(req) {
   return session.username;
 }
 
-/* =========================
-   HOME
-========================= */
+// =========================
+// GENERATE ACTIVATION KEY
+// =========================
+
+function generateActivationKey() {
+  if (activeActivationKey) {
+    return activeActivationKey;
+  }
+
+  activeActivationKey =
+    "HQ-" +
+    crypto.randomBytes(24).toString("hex").toUpperCase();
+
+  return activeActivationKey;
+}
+
+// =========================
+// BASIC SERVER
+// =========================
 
 app.get("/", (req, res) => {
   res.json({
@@ -89,9 +108,9 @@ app.get("/", (req, res) => {
   });
 });
 
-/* =========================
-   REGISTER
-========================= */
+// =========================
+// REGISTER
+// =========================
 
 app.post("/api/auth/register", (req, res) => {
   const { username, password, activationKey } = req.body;
@@ -126,7 +145,7 @@ app.post("/api/auth/register", (req, res) => {
     createdAt: Date.now()
   });
 
-  /* Key is immediately consumed */
+  // KEY IS CONSUMED
   activeActivationKey = null;
 
   const token = createLoginToken(username);
@@ -139,9 +158,9 @@ app.post("/api/auth/register", (req, res) => {
   });
 });
 
-/* =========================
-   LOGIN
-========================= */
+// =========================
+// LOGIN
+// =========================
 
 app.post("/api/auth/login", (req, res) => {
   const { username, password } = req.body;
@@ -176,9 +195,9 @@ app.post("/api/auth/login", (req, res) => {
   });
 });
 
-/* =========================
-   LOGOUT
-========================= */
+// =========================
+// LOGOUT
+// =========================
 
 app.post("/api/auth/logout", (req, res) => {
   const header = req.headers.authorization;
@@ -193,9 +212,9 @@ app.post("/api/auth/logout", (req, res) => {
   });
 });
 
-/* =========================
-   CHECK LOGIN
-========================= */
+// =========================
+// CURRENT USER
+// =========================
 
 app.get("/api/auth/me", (req, res) => {
   const username = getLoggedInUser(req);
@@ -212,9 +231,9 @@ app.get("/api/auth/me", (req, res) => {
   });
 });
 
-/* =========================
-   ADMIN ACTIVATION KEY
-========================= */
+// =========================
+// ADMIN KEY GENERATOR
+// =========================
 
 app.post("/api/admin/generate-key", (req, res) => {
   const adminKey = req.headers["x-admin-key"];
@@ -231,7 +250,6 @@ app.post("/api/admin/generate-key", (req, res) => {
     });
   }
 
-  /* Only ONE active key can exist */
   if (activeActivationKey) {
     return res.json({
       success: true,
@@ -241,21 +259,19 @@ app.post("/api/admin/generate-key", (req, res) => {
     });
   }
 
-  activeActivationKey =
-    "HQ-" +
-    crypto.randomBytes(24).toString("hex").toUpperCase();
+  const key = generateActivationKey();
 
   res.json({
     success: true,
     message: "New activation key generated.",
     active: true,
-    key: activeActivationKey
+    key
   });
 });
 
-/* =========================
-   ADMIN KEY STATUS
-========================= */
+// =========================
+// ADMIN KEY STATUS
+// =========================
 
 app.get("/api/admin/key-status", (req, res) => {
   const adminKey = req.headers["x-admin-key"];
@@ -277,13 +293,11 @@ app.get("/api/admin/key-status", (req, res) => {
   });
 });
 
-/* =========================
-   MICROSOFT / XBOX LOGIN
-========================= */
+// =========================
+// MICROSOFT / XBOX LOGIN
+// =========================
 
 app.post("/api/microsoft/login", async (req, res) => {
-
-  /* User MUST be logged into Hqbot first */
   const username = getLoggedInUser(req);
 
   if (!username) {
@@ -312,7 +326,6 @@ app.post("/api/microsoft/login", async (req, res) => {
       "./auth-cache",
       undefined,
       (data) => {
-
         const session = microsoftSessions.get(sessionId);
 
         if (!session) return;
@@ -341,9 +354,7 @@ app.post("/api/microsoft/login", async (req, res) => {
     if (session) {
       session.status = "connected";
     }
-
   } catch (error) {
-
     console.error(
       "Microsoft login error:",
       error
@@ -358,14 +369,13 @@ app.post("/api/microsoft/login", async (req, res) => {
   }
 });
 
-/* =========================
-   MICROSOFT LOGIN STATUS
-========================= */
+// =========================
+// MICROSOFT LOGIN STATUS
+// =========================
 
 app.get(
   "/api/microsoft/login/:sessionId",
   (req, res) => {
-
     const username = getLoggedInUser(req);
 
     if (!username) {
@@ -393,9 +403,85 @@ app.get(
   }
 );
 
-/* =========================
-   START SERVER
-========================= */
+// =========================
+// DISCORD BOT
+// =========================
+
+const discordClient = new Client({
+  intents: [
+    GatewayIntentBits.Guilds
+  ]
+});
+
+const genkeyCommand = new SlashCommandBuilder()
+  .setName("genkey")
+  .setDescription("Generate an Hqbot activation key");
+
+discordClient.once("ready", async () => {
+  console.log(
+    `Discord bot logged in as ${discordClient.user.tag}`
+  );
+
+  try {
+    const rest = new REST({ version: "10" })
+      .setToken(process.env.DISCORD_BOT_TOKEN);
+
+    await rest.put(
+      Routes.applicationCommands(discordClient.user.id),
+      {
+        body: [
+          genkeyCommand.toJSON()
+        ]
+      }
+    );
+
+    console.log(
+      "Discord /genkey command registered."
+    );
+  } catch (error) {
+    console.error(
+      "Discord command registration error:",
+      error
+    );
+  }
+});
+
+discordClient.on("interactionCreate", async (interaction) => {
+  if (!interaction.isChatInputCommand()) {
+    return;
+  }
+
+  if (interaction.commandName !== "genkey") {
+    return;
+  }
+
+  const key = generateActivationKey();
+
+  await interaction.reply({
+    content:
+      `🔐 Hqbot Activation Key:\n\`${key}\``,
+    ephemeral: true
+  });
+});
+
+if (process.env.DISCORD_BOT_TOKEN) {
+  discordClient.login(
+    process.env.DISCORD_BOT_TOKEN
+  ).catch((error) => {
+    console.error(
+      "Discord login failed:",
+      error
+    );
+  });
+} else {
+  console.log(
+    "DISCORD_BOT_TOKEN is not configured."
+  );
+}
+
+// =========================
+// START SERVER
+// =========================
 
 app.listen(PORT, () => {
   console.log(
