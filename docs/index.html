@@ -19,198 +19,212 @@ body {
   min-height: 100vh;
 }
 
-/* ================= AUTH ================= */
+/* AUTH */
 
-#authPage {
+.authScreen {
   min-height: 100vh;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   padding: 20px;
 }
 
 .authBox {
   width: 100%;
-  max-width: 400px;
-  background: #111613;
-  border: 1px solid #26352c;
+  max-width: 420px;
+  background: #101512;
+  border: 1px solid #263029;
   border-radius: 18px;
   padding: 30px;
-  box-shadow: 0 0 35px rgba(0,255,100,0.08);
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
 }
 
-.authBox h1 {
+.logo {
   text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #89938c;
   margin-bottom: 25px;
 }
 
-.authBox input {
+input {
   width: 100%;
-  padding: 14px;
-  margin-bottom: 14px;
-  border-radius: 10px;
-  border: 1px solid #29382f;
   background: #080b0a;
   color: white;
+  border: 1px solid #29332d;
+  border-radius: 10px;
+  padding: 13px;
+  margin-top: 10px;
   outline: none;
 }
 
-.authBox input:focus {
+input:focus {
   border-color: #20e66b;
 }
 
 .mainButton {
   width: 100%;
-  padding: 14px;
+  background: #20e66b;
+  color: #061009;
   border: none;
   border-radius: 10px;
-  background: #20e66b;
-  color: #061008;
+  padding: 13px;
+  margin-top: 15px;
   font-weight: bold;
   cursor: pointer;
+}
+
+.mainButton:hover {
+  opacity: .9;
 }
 
 .mainButton:disabled {
-  opacity: 0.5;
+  opacity: .5;
   cursor: not-allowed;
 }
 
-.switchText {
-  text-align: center;
-  margin-top: 20px;
-  color: #9aa49d;
-}
-
-.switchText span {
-  color: #39a7ff;
-  cursor: pointer;
-}
-
-.errorMessage {
-  color: #ff5c5c;
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-/* ================= DASHBOARD ================= */
-
-#dashboard {
-  display: none;
-  min-height: 100vh;
-}
-
-.menuButton {
-  position: fixed;
-  top: 18px;
-  left: 18px;
-  z-index: 1000;
-  width: 45px;
-  height: 45px;
-  background: #111613;
-  border: 1px solid #29382f;
-  border-radius: 10px;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-}
-
-.sidebar {
-  position: fixed;
-  left: -250px;
-  top: 0;
-  bottom: 0;
-  width: 250px;
-  background: #0d110f;
-  border-right: 1px solid #202a24;
-  padding: 25px 15px;
-  z-index: 999;
-  transition: left 0.25s ease;
-}
-
-.sidebar.open {
-  left: 0;
-}
-
-.logo {
-  font-size: 25px;
-  font-weight: bold;
-  margin-bottom: 35px;
-  padding-left: 10px;
-}
-
-.logo span {
-  color: #20e66b;
-}
-
-.nav {
-  color: #89938c;
-  padding: 14px;
-  border-radius: 8px;
-  margin-bottom: 5px;
-  cursor: pointer;
-}
-
-.nav:hover,
-.nav.active {
-  background: #18221c;
-  color: white;
-}
-
-.main {
-  min-height: 100vh;
-  padding: 80px 30px 35px;
+.secondaryButton {
   width: 100%;
-  max-width: 1500px;
-  margin: 0 auto;
-}
-
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.topbar h2 {
-  font-size: 28px;
-}
-
-.logout {
-  background: #1b241e;
-  border: 1px solid #303b34;
+  background: #171d19;
   color: white;
-  padding: 10px 15px;
-  border-radius: 8px;
+  border: 1px solid #29332d;
+  border-radius: 10px;
+  padding: 13px;
+  margin-top: 10px;
   cursor: pointer;
 }
 
-/* ================= CARDS ================= */
-
-.cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 15px;
-}
-
-.card {
-  background: #111613;
-  border: 1px solid #253029;
-  border-radius: 14px;
-  padding: 22px;
-  min-height: 120px;
-}
-
-.cardTitle {
+.authSwitch {
+  text-align: center;
   color: #89938c;
+  margin-top: 18px;
+  font-size: 14px;
+}
+
+.authSwitch span {
+  color: #20e66b;
+  cursor: pointer;
+}
+
+.error {
+  color: #ff6262;
+  margin-top: 10px;
   font-size: 13px;
 }
 
-.cardValue {
-  font-size: 28px;
-  margin-top: 10px;
+/* APP */
+
+#app {
+  display: none;
 }
 
-/* ================= DURATION ================= */
+.topbar {
+  height: 65px;
+  background: #101512;
+  border-bottom: 1px solid #263029;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topLogo {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.logoutButton {
+  background: #171d19;
+  border: 1px solid #29332d;
+  color: white;
+  border-radius: 9px;
+  padding: 9px 14px;
+  cursor: pointer;
+}
+
+.layout {
+  display: flex;
+  min-height: calc(100vh - 65px);
+}
+
+.sidebar {
+  width: 220px;
+  background: #0d110f;
+  border-right: 1px solid #263029;
+  padding: 18px 12px;
+}
+
+.navButton {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #89938c;
+  text-align: left;
+  padding: 13px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 5px;
+}
+
+.navButton:hover,
+.navButton.active {
+  background: #18201b;
+  color: white;
+}
+
+.content {
+  flex: 1;
+  padding: 25px;
+  max-width: 1200px;
+}
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+.pageTitle {
+  font-size: 26px;
+  font-weight: bold;
+}
+
+.pageSubtitle {
+  color: #89938c;
+  margin-top: 7px;
+}
+
+/* CARDS */
+
+.card {
+  margin-top: 20px;
+  background: #101512;
+  border: 1px solid #263029;
+  border-radius: 14px;
+  padding: 22px;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.cardText {
+  color: #89938c;
+  margin-top: 7px;
+}
+
+/* DURATION */
 
 .durationCard {
   margin-top: 15px;
@@ -242,376 +256,226 @@ body {
   color: #ff5c5c !important;
 }
 
-/* ================= GENERAL BOX ================= */
+/* ACCOUNT */
 
-.sectionBox {
-  margin-top: 25px;
-  background: #111613;
-  border: 1px solid #253029;
+.accountList {
+  margin-top: 20px;
+}
+
+.accountCard {
+  background: #101512;
+  border: 1px solid #263029;
   border-radius: 14px;
-  padding: 22px;
+  padding: 20px;
+  margin-bottom: 12px;
 }
 
-/* ================= BOT ================= */
-
-.botStatusRow {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 0;
-  border-bottom: 1px solid #202a24;
+.accountStatus {
+  color: #89938c;
+  margin-top: 7px;
 }
 
-.statusOnline {
-  color: #20e66b;
-}
-
-.statusOffline {
-  color: #ff5c5c;
-}
-
-.statusWaiting {
-  color: #ffc857;
-}
-
-.botActions {
-  display: flex;
-  gap: 10px;
-  margin-top: 18px;
-  flex-wrap: wrap;
-}
-
-.actionButton {
-  border: none;
-  border-radius: 9px;
-  padding: 12px 18px;
+.addAccountButton {
+  margin-top: 15px;
   background: #20e66b;
-  color: #061008;
+  border: none;
+  color: #061009;
+  border-radius: 10px;
+  padding: 12px 18px;
   font-weight: bold;
   cursor: pointer;
 }
 
-.actionButton.secondary {
-  background: #1b241e;
-  color: white;
-  border: 1px solid #303b34;
-}
+/* BOT */
 
-.actionButton.danger {
-  background: #ff5c5c;
-  color: #190000;
-}
-
-/* ================= INVENTORY ================= */
-
-.inventoryHeader {
-  display: flex;
-  justify-content: space-between;
+.botStatus {
+  display: inline-flex;
   align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
+  gap: 7px;
+  margin-top: 12px;
+  color: #89938c;
 }
 
-.inventoryHeader h3 {
-  font-size: 21px;
+.statusDot {
+  width: 9px;
+  height: 9px;
+  background: #777;
+  border-radius: 50%;
 }
+
+.statusDot.online {
+  background: #20e66b;
+}
+
+/* CONSOLE */
+
+.console {
+  background: #050706;
+  border: 1px solid #263029;
+  border-radius: 12px;
+  padding: 15px;
+  margin-top: 20px;
+  height: 400px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 13px;
+  color: #c9d0cb;
+}
+
+.consoleLine {
+  margin-bottom: 6px;
+  white-space: pre-wrap;
+}
+
+/* INVENTORY */
 
 .inventoryGrid {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
   gap: 7px;
+  margin-top: 18px;
 }
 
 .inventorySlot {
-  aspect-ratio: 1 / 1;
-  background: #080b0a;
-  border: 1px solid #29382f;
+  aspect-ratio: 1;
+  background: #181f1b;
+  border: 1px solid #2b362f;
   border-radius: 7px;
-  position: relative;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  position: relative;
   min-width: 0;
 }
 
-.inventorySlot.empty {
-  opacity: 0.45;
-}
-
-.slotNumber {
-  position: absolute;
-  top: 3px;
-  left: 5px;
-  color: #657069;
-  font-size: 9px;
-}
-
-.itemText {
-  font-size: 9px;
-  text-align: center;
-  word-break: break-word;
-  padding: 3px;
+.inventorySlot.protected {
+  border-color: #353e38;
 }
 
 .itemCount {
   position: absolute;
+  right: 4px;
   bottom: 3px;
-  right: 5px;
   font-size: 11px;
-  font-weight: bold;
-  color: #20e66b;
 }
 
-.hotbarTitle {
-  margin-top: 28px;
-  margin-bottom: 12px;
-  color: #89938c;
+.itemName {
+  font-size: 9px;
+  text-align: center;
+  word-break: break-word;
+  color: #bfc8c1;
 }
 
-.hotbarGrid {
-  display: grid;
-  grid-template-columns: repeat(9, 1fr);
-  gap: 7px;
-}
-
-.hotbarSlot {
-  aspect-ratio: 1 / 1;
-  background: #101612;
-  border: 1px solid #39483e;
-  border-radius: 7px;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.hotbarNotice {
-  margin-top: 12px;
-  color: #89938c;
-  font-size: 12px;
-}
-
-/* ================= CONSOLE ================= */
-
-.console {
+.inventoryLabel {
   margin-top: 25px;
-  background: #111613;
-  border: 1px solid #253029;
-  border-radius: 14px;
-  padding: 22px;
-}
-
-.console h3 {
-  margin-bottom: 12px;
-}
-
-.consoleBox {
-  background: #050706;
-  border: 1px solid #253029;
-  border-radius: 12px;
-  padding: 18px;
-  height: 300px;
-  overflow-y: auto;
-  color: #7cff9f;
-  font-family: monospace;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.commandArea {
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.commandArea input {
-  flex: 1;
-  padding: 14px;
-  background: #0d110f;
-  border: 1px solid #29352e;
-  border-radius: 9px;
-  color: white;
-  outline: none;
-}
-
-.commandArea button {
-  background: #20e66b;
-  color: #061008;
-  border: none;
-  border-radius: 9px;
-  padding: 0 25px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* ================= ACCOUNTS ================= */
-
-#accountsPage,
-#botsPage,
-#inventoryPage {
-  display: none;
-}
-
-.accountsHeader,
-.pageHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-}
-
-.accountsHeader h2,
-.pageHeader h2 {
-  font-size: 25px;
-}
-
-.addAccountInside {
-  background: #20e66b;
-  color: #061008;
-  border: none;
-  border-radius: 10px;
-  padding: 12px 18px;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-.accountList {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 15px;
-}
-
-.accountCard {
-  background: #080b0a;
-  border: 1px solid #29382f;
-  border-radius: 12px;
-  padding: 20px;
-}
-
-.accountStatus {
   color: #89938c;
-  margin-top: 8px;
   font-size: 13px;
 }
 
-/* ================= MODAL ================= */
+.dropButton {
+  background: #ff5555;
+  border: none;
+  color: white;
+  padding: 12px 17px;
+  border-radius: 9px;
+  margin-top: 15px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.dropButton:hover {
+  opacity: .9;
+}
+
+/* MODAL */
 
 #accountModal {
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.75);
-  justify-content: center;
+  background: rgba(0,0,0,.72);
   align-items: center;
+  justify-content: center;
   padding: 20px;
-  z-index: 2000;
+  z-index: 100;
 }
 
 .modal {
   width: 100%;
-  max-width: 430px;
-  background: #111613;
-  border: 1px solid #29382f;
-  border-radius: 16px;
+  max-width: 450px;
+  background: #101512;
+  border: 1px solid #29332d;
+  border-radius: 17px;
   padding: 25px;
+  box-shadow: 0 25px 80px rgba(0,0,0,.6);
 }
 
 .modal h2 {
-  margin-bottom: 10px;
+  font-size: 22px;
 }
 
 .modal p {
-  color: #929b95;
-  margin-bottom: 20px;
+  color: #89938c;
+  margin-top: 8px;
   line-height: 1.5;
 }
 
 .deviceCode {
   display: none;
+  margin-top: 20px;
   background: #080b0a;
-  border: 1px solid #29382f;
+  border: 1px solid #29332d;
+  border-radius: 12px;
   padding: 18px;
   text-align: center;
-  border-radius: 10px;
-  margin-bottom: 15px;
 }
 
-.deviceCode strong {
+#codeText {
   display: block;
-  font-size: 25px;
-  letter-spacing: 3px;
+  font-size: 30px;
+  letter-spacing: 4px;
+  margin-top: 10px;
   color: #20e66b;
-  margin-top: 8px;
 }
 
 .closeButton {
-  margin-top: 10px;
   width: 100%;
-  padding: 12px;
-  border: 1px solid #303b34;
   background: transparent;
-  color: white;
-  border-radius: 9px;
+  border: 1px solid #29332d;
+  color: #aaa;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 10px;
   cursor: pointer;
 }
 
-/* ================= MOBILE ================= */
+/* MOBILE */
 
-@media(max-width: 800px) {
-
-  .main {
-    padding: 80px 15px 25px;
+@media (max-width: 750px) {
+  .sidebar {
+    width: 70px;
+    padding: 12px 7px;
   }
 
-  .cards {
-    grid-template-columns: repeat(2, 1fr);
+  .navButton {
+    font-size: 0;
+    text-align: center;
   }
 
-  .inventoryGrid,
-  .hotbarGrid {
+  .navButton::first-letter {
+    font-size: 20px;
+  }
+
+  .content {
+    padding: 17px;
+  }
+
+  .inventoryGrid {
     gap: 4px;
   }
 
-  .topbar h2 {
-    font-size: 24px;
-  }
-}
-
-@media(max-width: 500px) {
-
-  .cards {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .commandArea {
-    flex-direction: row;
-  }
-
-  .commandArea button {
-    padding: 0 17px;
-  }
-
-  .inventorySlot,
-  .hotbarSlot {
-    border-radius: 5px;
-  }
-
-  .itemText {
+  .itemName {
     font-size: 7px;
-  }
-
-  .itemCount {
-    font-size: 9px;
-  }
-
-  .slotNumber {
-    font-size: 7px;
-  }
-
-  .inventoryHeader,
-  .accountsHeader,
-  .pageHeader {
-    align-items: flex-start;
   }
 }
 </style>
@@ -619,35 +483,27 @@ body {
 
 <body>
 
-<!-- ================= LOGIN ================= -->
+<!-- LOGIN -->
 
-<div id="authPage">
+<div id="authScreen" class="authScreen">
 
   <div class="authBox">
 
+    <div class="logo">Hqbot</div>
+    <div class="subtitle">Minecraft Bedrock Bot Dashboard</div>
+
     <div id="loginForm">
 
-      <h1>Login</h1>
-
-      <div id="loginError" class="errorMessage"></div>
-
-      <input
-        id="loginUsername"
-        type="text"
-        placeholder="Username"
-      >
-
-      <input
-        id="loginPassword"
-        type="password"
-        placeholder="Password"
-      >
+      <input id="loginUsername" placeholder="Username">
+      <input id="loginPassword" type="password" placeholder="Password">
 
       <button class="mainButton" onclick="login()">
         Login
       </button>
 
-      <div class="switchText">
+      <div id="loginError" class="error"></div>
+
+      <div class="authSwitch">
         Don't have an account?
         <span onclick="showRegister()">Register</span>
       </div>
@@ -656,33 +512,17 @@ body {
 
     <div id="registerForm" style="display:none;">
 
-      <h1>Register</h1>
-
-      <div id="registerError" class="errorMessage"></div>
-
-      <input
-        id="registerUsername"
-        type="text"
-        placeholder="Username"
-      >
-
-      <input
-        id="registerPassword"
-        type="password"
-        placeholder="Password"
-      >
-
-      <input
-        id="activationKey"
-        type="text"
-        placeholder="Activation Key"
-      >
+      <input id="registerUsername" placeholder="Username">
+      <input id="registerPassword" type="password" placeholder="Password">
+      <input id="registerKey" placeholder="Activation Key">
 
       <button class="mainButton" onclick="register()">
-        Register
+        Create Account
       </button>
 
-      <div class="switchText">
+      <div id="registerError" class="error"></div>
+
+      <div class="authSwitch">
         Already have an account?
         <span onclick="showLogin()">Login</span>
       </div>
@@ -694,196 +534,109 @@ body {
 </div>
 
 
-<!-- ================= DASHBOARD ================= -->
+<!-- APP -->
 
-<div id="dashboard">
+<div id="app">
 
-  <button
-    class="menuButton"
-    onclick="toggleMenu()"
-  >
-    ☰
-  </button>
+  <div class="topbar">
 
-  <aside id="sidebar" class="sidebar">
-
-    <div class="logo">
-      Hq<span>bot</span>
+    <div class="topLogo">
+      Hqbot
     </div>
 
-    <div
-      id="navDashboard"
-      class="nav active"
-      onclick="showDashboardPage()"
-    >
-      Dashboard
+    <button class="logoutButton" onclick="logout()">
+      Logout
+    </button>
+
+  </div>
+
+
+  <div class="layout">
+
+    <div class="sidebar">
+
+      <button class="navButton active" onclick="showPage('dashboardPage', this)">
+        🏠 Dashboard
+      </button>
+
+      <button class="navButton" onclick="showPage('accountsPage', this)">
+        👤 Accounts
+      </button>
+
+      <button class="navButton" onclick="showPage('botsPage', this)">
+        🤖 Bots
+      </button>
+
+      <button class="navButton" onclick="showPage('consolePage', this)">
+        💻 Console
+      </button>
+
+      <button class="navButton" onclick="showPage('inventoryPage', this)">
+        🎒 Inventory
+      </button>
+
     </div>
 
-    <div
-      id="navAccounts"
-      class="nav"
-      onclick="showAccountsPage()"
-    >
-      Accounts
-    </div>
 
-    <div
-      id="navBots"
-      class="nav"
-      onclick="showBotsPage()"
-    >
-      Bots
-    </div>
+    <div class="content">
 
-    <div
-      id="navConsole"
-      class="nav"
-      onclick="showConsolePage()"
-    >
-      Console
-    </div>
+      <!-- DASHBOARD -->
 
-    <div
-      id="navInventory"
-      class="nav"
-      onclick="showInventoryPage()"
-    >
-      Inventory
-    </div>
+      <div id="dashboardPage" class="page active">
 
-    <div class="nav">
-      World
-    </div>
+        <div class="pageTitle">
+          Dashboard
+        </div>
 
-    <div class="nav">
-      Settings
-    </div>
+        <div class="pageSubtitle">
+          Welcome back to Hqbot.
+        </div>
 
-  </aside>
-
-
-  <main class="main">
-
-    <!-- ================= DASHBOARD PAGE ================= -->
-
-    <div id="dashboardPage">
-
-      <div class="topbar">
-
-        <h2>Dashboard</h2>
-
-        <button
-          class="logout"
-          onclick="logout()"
-        >
-          Logout
-        </button>
-
-      </div>
-
-      <div class="cards">
 
         <div class="card">
+
           <div class="cardTitle">
-            Total Bots
+            Account
           </div>
 
-          <div
-            id="totalBots"
-            class="cardValue"
-          >
-            0
+          <div class="cardText" id="welcomeText">
+            Loading...
           </div>
+
         </div>
+
+
+        <div class="durationCard">
+
+          <div class="durationTitle">
+            Hqbot Plan
+          </div>
+
+          <div id="planText" class="durationPlan">
+            Loading...
+          </div>
+
+          <div id="durationText" class="durationValue">
+            Loading duration...
+          </div>
+
+        </div>
+
 
         <div class="card">
+
           <div class="cardTitle">
-            Online
+            Bot
           </div>
 
-          <div
-            id="onlineBots"
-            class="cardValue"
-          >
-            0
-          </div>
-        </div>
+          <div class="botStatus">
 
-        <div class="card">
-          <div class="cardTitle">
-            Automations
-          </div>
+            <div id="dashboardStatusDot" class="statusDot"></div>
 
-          <div class="cardValue">
-            0
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="cardTitle">
-            Platform
-          </div>
-
-          <div class="cardValue">
-            Bedrock
-          </div>
-        </div>
-
-      </div>
-
-
-      <!-- ================= PLAN / DURATION ================= -->
-
-      <div class="durationCard">
-
-        <div class="durationTitle">
-          Hqbot Plan
-        </div>
-
-        <div
-          id="planText"
-          class="durationPlan"
-        >
-          Loading...
-        </div>
-
-        <div
-          id="durationText"
-          class="durationValue"
-        >
-          Loading duration...
-        </div>
-
-      </div>
-
-
-      <div class="sectionBox">
-
-        <h3>Bot Status</h3>
-
-        <div class="botStatusRow">
-
-          <div>
-            <strong id="dashboardBotName">
-              Minecraft Bot
-            </strong>
-
-            <div
-              id="dashboardBotStatus"
-              style="
-              color:#89938c;
-              margin-top:5px;
-              "
-            >
+            <span id="dashboardBotStatus">
               Offline
-            </div>
-          </div>
+            </span>
 
-          <div
-            id="dashboardStatus"
-            class="statusOffline"
-          >
-            Offline
           </div>
 
         </div>
@@ -891,221 +644,134 @@ body {
       </div>
 
 
-      <div class="console">
+      <!-- ACCOUNTS -->
 
-        <h3>
-          Console
-        </h3>
+      <div id="accountsPage" class="page">
 
-        <div
-          id="consoleBox"
-          class="consoleBox"
-        >
-          [SYSTEM] Hqbot dashboard loaded.
-        </div>
-
-        <div class="commandArea">
-
-          <input
-            id="commandInput"
-            placeholder="Type a Minecraft command..."
-            onkeydown="if(event.key==='Enter') runCommand()"
-          >
-
-          <button onclick="runCommand()">
-            Send
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <!-- ================= ACCOUNTS PAGE ================= -->
-
-    <div id="accountsPage">
-
-      <div class="accountsHeader">
-
-        <h2>
+        <div class="pageTitle">
           Accounts
-        </h2>
-
-        <button
-          class="addAccountInside"
-          onclick="openAccountModal()"
-        >
-          + Add Account
-        </button>
-
-      </div>
-
-      <div class="accountList">
-
-        <div class="accountCard">
-
-          <strong>
-            Minecraft Account
-          </strong>
-
-          <div class="accountStatus">
-            Connect a Microsoft/Xbox account to start the bot.
-          </div>
-
         </div>
 
-      </div>
-
-    </div>
-
-
-    <!-- ================= BOTS PAGE ================= -->
-
-    <div id="botsPage">
-
-      <div class="pageHeader">
-
-        <h2>
-          Bots
-        </h2>
-
-        <button
-          class="actionButton secondary"
-          onclick="refreshBotStatus()"
-        >
-          Refresh
-        </button>
-
-      </div>
+        <div class="pageSubtitle">
+          Connect your Microsoft Minecraft account.
+        </div>
 
 
-      <div class="sectionBox">
+        <div class="accountList">
 
-        <div class="botStatusRow">
-
-          <div>
+          <div class="accountCard">
 
             <strong>
-              Minecraft Bedrock Bot
+              Minecraft Account
             </strong>
 
-            <div
-              id="botPageStatusText"
-              style="
-              color:#89938c;
-              margin-top:7px;
-              "
-            >
-              Checking status...
+            <div id="accountStatus" class="accountStatus">
+              No Microsoft/Xbox account connected.
             </div>
 
+            <button class="addAccountButton" onclick="openAccountModal()">
+              + Add Account
+            </button>
+
           </div>
-
-          <div
-            id="botPageStatus"
-            class="statusOffline"
-          >
-            Offline
-          </div>
-
-        </div>
-
-
-        <div class="botActions">
-
-          <button
-            class="actionButton"
-            onclick="showInventoryPage()"
-          >
-            📦 Inventory
-          </button>
-
-          <button
-            class="actionButton secondary"
-            onclick="refreshBotStatus()"
-          >
-            🔄 Refresh Status
-          </button>
 
         </div>
 
       </div>
 
-    </div>
+
+      <!-- BOTS -->
+
+      <div id="botsPage" class="page">
+
+        <div class="pageTitle">
+          Bots
+        </div>
+
+        <div class="pageSubtitle">
+          Your active Minecraft bot.
+        </div>
 
 
-    <!-- ================= INVENTORY PAGE ================= -->
+        <div class="card">
 
-    <div id="inventoryPage">
+          <div class="cardTitle">
+            Hqbot Minecraft Bot
+          </div>
 
-      <div class="pageHeader">
+          <div class="botStatus">
 
-        <h2>
+            <div id="botStatusDot" class="statusDot"></div>
+
+            <span id="botStatusText">
+              Offline
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- CONSOLE -->
+
+      <div id="consolePage" class="page">
+
+        <div class="pageTitle">
+          Console
+        </div>
+
+        <div class="pageSubtitle">
+          Live Hqbot logs.
+        </div>
+
+        <div id="console" class="console"></div>
+
+      </div>
+
+
+      <!-- INVENTORY -->
+
+      <div id="inventoryPage" class="page">
+
+        <div class="pageTitle">
           Inventory
-        </h2>
-
-        <button
-          class="actionButton secondary"
-          onclick="loadInventory()"
-        >
-          🔄 Refresh
-        </button>
-
-      </div>
-
-
-      <div class="sectionBox">
-
-        <div class="inventoryHeader">
-
-          <h3>
-            Main Inventory
-          </h3>
-
-          <button
-            id="dropInventoryButton"
-            class="actionButton danger"
-            onclick="dropInventory()"
-          >
-            🗑️ Drop Inventory
-          </button>
-
         </div>
 
-        <div
-          id="mainInventoryGrid"
-          class="inventoryGrid"
-        >
+        <div class="pageSubtitle">
+          View and manage the bot inventory.
         </div>
 
 
-        <div class="hotbarTitle">
+        <div class="inventoryLabel">
+          Main Inventory
+        </div>
+
+        <div id="mainInventory" class="inventoryGrid"></div>
+
+
+        <div class="inventoryLabel">
           Hotbar
         </div>
 
-        <div
-          id="hotbarGrid"
-          class="hotbarGrid"
-        >
-        </div>
+        <div id="hotbarInventory" class="inventoryGrid"></div>
 
-        <div class="hotbarNotice">
-          🔒 Hotbar is protected. Drop Inventory will never touch these slots.
-        </div>
+
+        <button class="dropButton" onclick="dropInventory()">
+          Drop Main Inventory
+        </button>
 
       </div>
 
     </div>
 
-
-  </main>
+  </div>
 
 </div>
 
 
-<!-- ================= MICROSOFT MODAL ================= -->
+<!-- MICROSOFT ACCOUNT MODAL -->
 
 <div id="accountModal">
 
@@ -1116,34 +782,56 @@ body {
     </h2>
 
     <p>
-      Connect your Minecraft Bedrock account using
-      Microsoft's secure device-code sign-in.
-      Your Microsoft password is never requested here.
+      Sign in securely with Microsoft to connect your Minecraft Bedrock account.
     </p>
 
-    <div
-      id="deviceCode"
-      class="deviceCode"
-    >
+
+    <div id="deviceCode" class="deviceCode">
 
       <div>
-        Enter this code at the Microsoft login page:
+        Microsoft gave you this code:
       </div>
 
       <strong id="codeText">
         ------
       </strong>
 
+
+      <button
+        id="openMicrosoftButton"
+        class="mainButton"
+        style="margin-top:15px;"
+        onclick="openMicrosoftLogin()"
+      >
+        🌐 Open Microsoft Login
+      </button>
+
+
       <div
         id="verificationText"
         style="
-        margin-top:10px;
-        color:#89938c;
+          margin-top:12px;
+          color:#89938c;
+          font-size:13px;
+          line-height:1.5;
         "
       >
+        Open Microsoft, enter the code above, and sign in with your Microsoft account.
+      </div>
+
+
+      <div
+        id="loginWaiting"
+        style="
+          margin-top:15px;
+          color:#ffc857;
+        "
+      >
+        ⏳ Waiting for Microsoft sign-in...
       </div>
 
     </div>
+
 
     <button
       id="startMicrosoftButton"
@@ -1152,6 +840,7 @@ body {
     >
       Sign in with Microsoft
     </button>
+
 
     <button
       class="closeButton"
@@ -1167,10 +856,6 @@ body {
 
 <script>
 
-/* =========================================================
-   API
-   ========================================================= */
-
 const HQBOT_API =
   "https://hqbot-production-b81b.up.railway.app";
 
@@ -1179,47 +864,40 @@ let authToken =
 
 let durationTimer = null;
 
+let microsoftVerificationUri = "";
+let microsoftSessionId = "";
 
-/* =========================================================
+
+/* =========================
    AUTH
-   ========================================================= */
-
-function showRegister() {
-
-  document.getElementById("loginForm").style.display =
-    "none";
-
-  document.getElementById("registerForm").style.display =
-    "block";
-}
-
+========================= */
 
 function showLogin() {
 
-  document.getElementById("registerForm").style.display =
-    "none";
+  document.getElementById("loginForm").style.display = "block";
+  document.getElementById("registerForm").style.display = "none";
 
-  document.getElementById("loginForm").style.display =
-    "block";
+}
+
+
+function showRegister() {
+
+  document.getElementById("loginForm").style.display = "none";
+  document.getElementById("registerForm").style.display = "block";
+
 }
 
 
 async function login() {
 
   const username =
-    document.getElementById(
-      "loginUsername"
-    ).value.trim();
+    document.getElementById("loginUsername").value.trim();
 
   const password =
-    document.getElementById(
-      "loginPassword"
-    ).value;
+    document.getElementById("loginPassword").value;
 
   const error =
-    document.getElementById(
-      "loginError"
-    );
+    document.getElementById("loginError");
 
   error.textContent = "";
 
@@ -1234,24 +912,20 @@ async function login() {
   try {
 
     const response =
-      await fetch(
-        HQBOT_API +
-        "/api/auth/login",
-        {
-          method: "POST",
+      await fetch(HQBOT_API + "/api/login", {
 
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
+        method: "POST",
 
-          body:
-            JSON.stringify({
-              username,
-              password
-            })
-        }
-      );
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          username,
+          password
+        })
+
+      });
 
     const data =
       await response.json();
@@ -1259,8 +933,7 @@ async function login() {
     if (!response.ok) {
 
       error.textContent =
-        data.error ||
-        "Login failed.";
+        data.error || "Login failed.";
 
       return;
     }
@@ -1279,39 +952,29 @@ async function login() {
 
     error.textContent =
       "Could not connect to Hqbot.";
+
   }
+
 }
 
 
 async function register() {
 
   const username =
-    document.getElementById(
-      "registerUsername"
-    ).value.trim();
+    document.getElementById("registerUsername").value.trim();
 
   const password =
-    document.getElementById(
-      "registerPassword"
-    ).value;
+    document.getElementById("registerPassword").value;
 
-  const activationKey =
-    document.getElementById(
-      "activationKey"
-    ).value.trim();
+  const key =
+    document.getElementById("registerKey").value.trim();
 
   const error =
-    document.getElementById(
-      "registerError"
-    );
+    document.getElementById("registerError");
 
   error.textContent = "";
 
-  if (
-    !username ||
-    !password ||
-    !activationKey
-  ) {
+  if (!username || !password || !key) {
 
     error.textContent =
       "Fill in all fields.";
@@ -1322,25 +985,21 @@ async function register() {
   try {
 
     const response =
-      await fetch(
-        HQBOT_API +
-        "/api/auth/register",
-        {
-          method: "POST",
+      await fetch(HQBOT_API + "/api/register", {
 
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
+        method: "POST",
 
-          body:
-            JSON.stringify({
-              username,
-              password,
-              activationKey
-            })
-        }
-      );
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+          username,
+          password,
+          key
+        })
+
+      });
 
     const data =
       await response.json();
@@ -1348,8 +1007,7 @@ async function register() {
     if (!response.ok) {
 
       error.textContent =
-        data.error ||
-        "Registration failed.";
+        data.error || "Registration failed.";
 
       return;
     }
@@ -1368,96 +1026,146 @@ async function register() {
 
     error.textContent =
       "Could not connect to Hqbot.";
+
   }
+
 }
 
 
-/* =========================================================
+function logout() {
+
+  authToken = null;
+
+  sessionStorage.removeItem(
+    "hqbotToken"
+  );
+
+  if (durationTimer) {
+
+    clearInterval(durationTimer);
+
+    durationTimer = null;
+
+  }
+
+  document.getElementById("app").style.display =
+    "none";
+
+  document.getElementById("authScreen").style.display =
+    "flex";
+
+}
+
+
+/* =========================
    DASHBOARD
-   ========================================================= */
+========================= */
 
 function showDashboard() {
 
-  document.getElementById(
-    "authPage"
-  ).style.display = "none";
+  document.getElementById("authScreen").style.display =
+    "none";
 
-  document.getElementById(
-    "dashboard"
-  ).style.display = "block";
+  document.getElementById("app").style.display =
+    "block";
 
-  showDashboardPage();
-
-  addLog(
-    "[SYSTEM] Logged in successfully."
-  );
+  document.getElementById("welcomeText").textContent =
+    "Logged in successfully.";
 
   loadPlanDuration();
 
   refreshBotStatus();
+
 }
 
 
-function showAuth() {
+function showPage(pageId, button) {
 
-  if (durationTimer) {
-    clearInterval(durationTimer);
-    durationTimer = null;
+  document.querySelectorAll(".page")
+    .forEach(page => {
+      page.classList.remove("active");
+    });
+
+  document.getElementById(pageId)
+    .classList.add("active");
+
+
+  document.querySelectorAll(".navButton")
+    .forEach(btn => {
+      btn.classList.remove("active");
+    });
+
+  button.classList.add("active");
+
+
+  if (pageId === "dashboardPage") {
+
+    loadPlanDuration();
+
+    refreshBotStatus();
+
   }
 
-  document.getElementById(
-    "authPage"
-  ).style.display = "flex";
+  if (pageId === "botsPage") {
 
-  document.getElementById(
-    "dashboard"
-  ).style.display = "none";
+    refreshBotStatus();
+
+  }
+
+  if (pageId === "inventoryPage") {
+
+    loadInventory();
+
+  }
+
 }
 
 
-/* =========================================================
+/* =========================
    PLAN / DURATION
-   ========================================================= */
+========================= */
 
 async function loadPlanDuration() {
 
   const planText =
-    document.getElementById(
-      "planText"
-    );
+    document.getElementById("planText");
 
   const durationText =
-    document.getElementById(
-      "durationText"
-    );
+    document.getElementById("durationText");
 
-  if (!planText || !durationText) {
+  if (!planText || !durationText)
     return;
-  }
+
 
   if (!authToken) {
-    planText.textContent = "Not logged in";
-    durationText.textContent = "—";
+
+    planText.textContent =
+      "Not logged in";
+
+    durationText.textContent =
+      "—";
+
     return;
+
   }
+
 
   try {
 
     const response =
-      await fetch(
-        HQBOT_API +
-        "/api/plan",
-        {
-          headers: {
-            Authorization:
-              "Bearer " +
-              authToken
-          }
+      await fetch(HQBOT_API + "/api/plan", {
+
+        headers: {
+          Authorization:
+            "Bearer " + authToken
         }
-      );
+
+      });
+
 
     const data =
       await response.json();
+
 
     if (!response.ok) {
 
@@ -1473,12 +1181,14 @@ async function loadPlanDuration() {
       );
 
       return;
+
     }
 
+
     const plan =
-      String(
-        data.plan || ""
-      ).toLowerCase();
+      String(data.plan || "")
+        .toLowerCase();
+
 
     if (plan === "lifetime") {
 
@@ -1492,13 +1202,18 @@ async function loadPlanDuration() {
       durationText.textContent =
         "♾️ Never expires";
 
+
       if (durationTimer) {
+
         clearInterval(durationTimer);
         durationTimer = null;
+
       }
 
       return;
+
     }
+
 
     if (
       data.expired ||
@@ -1516,13 +1231,18 @@ async function loadPlanDuration() {
         "durationExpired"
       );
 
+
       if (durationTimer) {
+
         clearInterval(durationTimer);
         durationTimer = null;
+
       }
 
       return;
+
     }
+
 
     planText.textContent =
       "📅 Monthly";
@@ -1531,23 +1251,25 @@ async function loadPlanDuration() {
       "durationExpired"
     );
 
+
     updateDurationCountdown(
       data.expiresAt
     );
 
-    if (durationTimer) {
+
+    if (durationTimer)
       clearInterval(durationTimer);
-    }
+
 
     durationTimer =
       setInterval(
-        () => {
+        () =>
           updateDurationCountdown(
             data.expiresAt
-          );
-        },
+          ),
         1000
       );
+
 
   } catch (err) {
 
@@ -1560,29 +1282,27 @@ async function loadPlanDuration() {
     durationText.classList.add(
       "durationExpired"
     );
+
   }
+
 }
 
 
-function updateDurationCountdown(
-  expiresAt
-) {
+function updateDurationCountdown(expiresAt) {
 
   const durationText =
-    document.getElementById(
-      "durationText"
-    );
+    document.getElementById("durationText");
 
-  if (!durationText) {
+  if (!durationText)
     return;
-  }
+
 
   const remaining =
     Math.max(
       0,
-      Number(expiresAt) -
-      Date.now()
+      Number(expiresAt) - Date.now()
     );
+
 
   if (remaining <= 0) {
 
@@ -1593,917 +1313,95 @@ function updateDurationCountdown(
       "durationExpired"
     );
 
+
     if (durationTimer) {
+
       clearInterval(durationTimer);
       durationTimer = null;
+
     }
 
     return;
+
   }
+
 
   const totalSeconds =
     Math.floor(
       remaining / 1000
     );
 
+
   const days =
     Math.floor(
       totalSeconds / 86400
     );
 
+
   const hours =
     Math.floor(
-      (totalSeconds % 86400) /
-      3600
+      (totalSeconds % 86400) / 3600
     );
+
 
   const minutes =
     Math.floor(
-      (totalSeconds % 3600) /
-      60
+      (totalSeconds % 3600) / 60
     );
+
 
   const seconds =
     totalSeconds % 60;
 
+
   durationText.textContent =
     `⏳ ${days}d ${hours}h ${minutes}m ${seconds}s remaining`;
+
 }
 
 
-/* =========================================================
-   MENU
-   ========================================================= */
-
-function toggleMenu() {
-
-  document
-    .getElementById("sidebar")
-    .classList.toggle("open");
-}
-
-
-function closeMenu() {
-
-  document
-    .getElementById("sidebar")
-    .classList.remove("open");
-}
-
-
-function setActiveNav(id) {
-
-  document
-    .querySelectorAll(".nav")
-    .forEach(
-      nav =>
-        nav.classList.remove(
-          "active"
-        )
-    );
-
-  const nav =
-    document.getElementById(id);
-
-  if (nav) {
-    nav.classList.add("active");
-  }
-}
-
-
-/* =========================================================
-   PAGE SWITCHING
-   ========================================================= */
-
-function hideAllPages() {
-
-  document.getElementById(
-    "dashboardPage"
-  ).style.display = "none";
-
-  document.getElementById(
-    "accountsPage"
-  ).style.display = "none";
-
-  document.getElementById(
-    "botsPage"
-  ).style.display = "none";
-
-  document.getElementById(
-    "inventoryPage"
-  ).style.display = "none";
-}
-
-
-function showDashboardPage() {
-
-  hideAllPages();
-
-  document.getElementById(
-    "dashboardPage"
-  ).style.display = "block";
-
-  setActiveNav(
-    "navDashboard"
-  );
-
-  closeMenu();
-
-  loadPlanDuration();
-
-  refreshBotStatus();
-}
-
-
-function showAccountsPage() {
-
-  hideAllPages();
-
-  document.getElementById(
-    "accountsPage"
-  ).style.display = "block";
-
-  setActiveNav(
-    "navAccounts"
-  );
-
-  closeMenu();
-}
-
-
-function showBotsPage() {
-
-  hideAllPages();
-
-  document.getElementById(
-    "botsPage"
-  ).style.display = "block";
-
-  setActiveNav(
-    "navBots"
-  );
-
-  closeMenu();
-
-  refreshBotStatus();
-}
-
-
-function showConsolePage() {
-
-  hideAllPages();
-
-  document.getElementById(
-    "dashboardPage"
-  ).style.display = "block";
-
-  setActiveNav(
-    "navConsole"
-  );
-
-  closeMenu();
-
-  document
-    .getElementById("consoleBox")
-    .scrollIntoView({
-      behavior: "smooth"
-    });
-}
-
-
-function showInventoryPage() {
-
-  hideAllPages();
-
-  document.getElementById(
-    "inventoryPage"
-  ).style.display = "block";
-
-  setActiveNav(
-    "navInventory"
-  );
-
-  closeMenu();
-
-  loadInventory();
-}
-
-
-/* =========================================================
-   LOGOUT
-   ========================================================= */
-
-async function logout() {
-
-  try {
-
-    await fetch(
-      HQBOT_API +
-      "/api/auth/logout",
-      {
-        method: "POST",
-
-        headers: {
-          Authorization:
-            "Bearer " +
-            authToken
-        }
-      }
-    );
-
-  } catch (err) {}
-
-  authToken = null;
-
-  sessionStorage.removeItem(
-    "hqbotToken"
-  );
-
-  showAuth();
-}
-
-
-/* =========================================================
-   CONSOLE
-   ========================================================= */
-
-function addLog(message) {
-
-  const box =
-    document.getElementById(
-      "consoleBox"
-    );
-
-  box.innerHTML +=
-    "<br>" + escapeHtml(message);
-
-  box.scrollTop =
-    box.scrollHeight;
-}
-
-
-function escapeHtml(text) {
-
-  return String(text)
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-    .replace(
-      /</g,
-      "&lt;"
-    )
-    .replace(
-      />/g,
-      "&gt;"
-    )
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-    .replace(
-      /'/g,
-      "&#039;"
-    );
-}
-
-
-async function runCommand() {
-
-  const input =
-    document.getElementById(
-      "commandInput"
-    );
-
-  const command =
-    input.value.trim();
-
-  if (!command) {
-    return;
-  }
-
-  addLog(
-    "[COMMAND] " +
-    command
-  );
-
-  input.value = "";
-
-  if (!authToken) {
-    addLog(
-      "[ERROR] Not logged in."
-    );
-    return;
-  }
-
-  try {
-
-    const response =
-      await fetch(
-        HQBOT_API +
-        "/api/bot/command",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Authorization:
-              "Bearer " +
-              authToken
-          },
-
-          body:
-            JSON.stringify({
-              command
-            })
-        }
-      );
-
-    const data =
-      await response.json();
-
-    if (!response.ok) {
-
-      addLog(
-        "[ERROR] " +
-        (
-          data.error ||
-          "Command failed."
-        )
-      );
-
-      return;
-    }
-
-    addLog(
-      "[SYSTEM] Command sent."
-    );
-
-  } catch (err) {
-
-    addLog(
-      "[ERROR] Could not connect to Hqbot."
-    );
-  }
-}
-
-
-/* =========================================================
-   BOT STATUS
-   ========================================================= */
-
-async function refreshBotStatus() {
-
-  if (!authToken) {
-    return;
-  }
-
-  try {
-
-    const response =
-      await fetch(
-        HQBOT_API +
-        "/api/bot/status",
-        {
-          headers: {
-            Authorization:
-              "Bearer " +
-              authToken
-          }
-        }
-      );
-
-    const data =
-      await response.json();
-
-    if (!response.ok) {
-
-      updateBotStatusUI(
-        false,
-        data.error ||
-        "Offline"
-      );
-
-      return;
-    }
-
-    updateBotStatusUI(
-      data.online === true,
-      data.status ||
-      "offline"
-    );
-
-  } catch (err) {
-
-    updateBotStatusUI(
-      false,
-      "Connection error"
-    );
-  }
-}
-
-
-function updateBotStatusUI(
-  online,
-  status
-) {
-
-  const dashboardStatus =
-    document.getElementById(
-      "dashboardStatus"
-    );
-
-  const dashboardText =
-    document.getElementById(
-      "dashboardBotStatus"
-    );
-
-  const botPageStatus =
-    document.getElementById(
-      "botPageStatus"
-    );
-
-  const botPageText =
-    document.getElementById(
-      "botPageStatusText"
-    );
-
-  const total =
-    document.getElementById(
-      "totalBots"
-    );
-
-  const onlineCount =
-    document.getElementById(
-      "onlineBots"
-    );
-
-  if (online) {
-
-    dashboardStatus.textContent =
-      "Online";
-
-    dashboardStatus.className =
-      "statusOnline";
-
-    dashboardText.textContent =
-      "Bot is online.";
-
-    botPageStatus.textContent =
-      "Online";
-
-    botPageStatus.className =
-      "statusOnline";
-
-    botPageText.textContent =
-      "Bot is connected and online.";
-
-    total.textContent = "1";
-
-    onlineCount.textContent = "1";
-
-  } else {
-
-    dashboardStatus.textContent =
-      "Offline";
-
-    dashboardStatus.className =
-      "statusOffline";
-
-    dashboardText.textContent =
-      status;
-
-    botPageStatus.textContent =
-      "Offline";
-
-    botPageStatus.className =
-      "statusOffline";
-
-    botPageText.textContent =
-      status;
-
-    total.textContent = "0";
-
-    onlineCount.textContent = "0";
-  }
-}
-
-
-/* =========================================================
-   INVENTORY
-   ========================================================= */
-
-function createInventorySlot(
-  entry,
-  fallbackSlot
-) {
-
-  const slot =
-    document.createElement(
-      "div"
-    );
-
-  slot.className =
-    "inventorySlot";
-
-  const slotNumber =
-    document.createElement(
-      "div"
-    );
-
-  slotNumber.className =
-    "slotNumber";
-
-  slotNumber.textContent =
-    fallbackSlot;
-
-  slot.appendChild(
-    slotNumber
-  );
-
-  if (
-    !entry ||
-    entry.empty ||
-    !entry.count
-  ) {
-
-    slot.classList.add(
-      "empty"
-    );
-
-    return slot;
-  }
-
-  const itemText =
-    document.createElement(
-      "div"
-    );
-
-  itemText.className =
-    "itemText";
-
-  itemText.textContent =
-    getItemName(entry);
-
-  slot.appendChild(
-    itemText
-  );
-
-  const count =
-    document.createElement(
-      "div"
-    );
-
-  count.className =
-    "itemCount";
-
-  count.textContent =
-    entry.count;
-
-  slot.appendChild(
-    count
-  );
-
-  return slot;
-}
-
-
-function getItemName(entry) {
-
-  if (
-    entry.name
-  ) {
-    return entry.name;
-  }
-
-  if (
-    entry.item &&
-    entry.item.name
-  ) {
-    return entry.item.name;
-  }
-
-  if (
-    entry.metadata &&
-    entry.metadata.name
-  ) {
-    return entry.metadata.name;
-  }
-
-  if (
-    entry.network_id
-  ) {
-    return (
-      "Item " +
-      entry.network_id
-    );
-  }
-
-  return "Item";
-}
-
-
-async function loadInventory() {
-
-  const mainGrid =
-    document.getElementById(
-      "mainInventoryGrid"
-    );
-
-  const hotbarGrid =
-    document.getElementById(
-      "hotbarGrid"
-    );
-
-  mainGrid.innerHTML =
-    "";
-
-  hotbarGrid.innerHTML =
-    "";
-
-  if (!authToken) {
-
-    addLog(
-      "[ERROR] Please login first."
-    );
-
-    return;
-  }
-
-  try {
-
-    const response =
-      await fetch(
-        HQBOT_API +
-        "/api/bot/inventory",
-        {
-          headers: {
-            Authorization:
-              "Bearer " +
-              authToken
-          }
-        }
-      );
-
-    const data =
-      await response.json();
-
-    if (!response.ok) {
-
-      addLog(
-        "[INVENTORY] " +
-        (
-          data.error ||
-          "Could not load inventory."
-        )
-      );
-
-      showEmptyInventory(
-        mainGrid,
-        27
-      );
-
-      showEmptyInventory(
-        hotbarGrid,
-        9
-      );
-
-      return;
-    }
-
-    const main =
-      Array.isArray(
-        data.mainInventory
-      )
-        ? data.mainInventory
-        : [];
-
-    for (
-      let i = 0;
-      i < 27;
-      i++
-    ) {
-
-      const entry =
-        main[i] || {
-          empty: true
-        };
-
-      const slot =
-        createInventorySlot(
-          entry,
-          9 + i
-        );
-
-      mainGrid.appendChild(
-        slot
-      );
-    }
-
-    const hotbar =
-      Array.isArray(
-        data.hotbar
-      )
-        ? data.hotbar
-        : [];
-
-    for (
-      let i = 0;
-      i < 9;
-      i++
-    ) {
-
-      const entry =
-        hotbar[i] || {
-          empty: true
-        };
-
-      const slot =
-        createInventorySlot(
-          entry,
-          i
-        );
-
-      slot.classList.add(
-        "hotbarSlot"
-      );
-
-      hotbarGrid.appendChild(
-        slot
-      );
-    }
-
-    addLog(
-      "[INVENTORY] Inventory loaded."
-    );
-
-  } catch (err) {
-
-    addLog(
-      "[INVENTORY] Connection error."
-    );
-
-    showEmptyInventory(
-      mainGrid,
-      27
-    );
-
-    showEmptyInventory(
-      hotbarGrid,
-      9
-    );
-  }
-}
-
-
-function showEmptyInventory(
-  container,
-  amount
-) {
-
-  for (
-    let i = 0;
-    i < amount;
-    i++
-  ) {
-
-    const slot =
-      createInventorySlot(
-        {
-          empty: true
-        },
-        i
-      );
-
-    container.appendChild(
-      slot
-    );
-  }
-}
-
-
-/* =========================================================
-   DROP INVENTORY
-   ========================================================= */
-
-async function dropInventory() {
-
-  if (!authToken) {
-
-    alert(
-      "Please login first."
-    );
-
-    return;
-  }
-
-  const confirmed =
-    confirm(
-      "Drop all items in the main inventory?\n\nYour hotbar will NOT be touched."
-    );
-
-  if (!confirmed) {
-    return;
-  }
-
-  const button =
-    document.getElementById(
-      "dropInventoryButton"
-    );
-
-  button.disabled =
-    true;
-
-  button.textContent =
-    "Dropping...";
-
-  try {
-
-    const response =
-      await fetch(
-        HQBOT_API +
-        "/api/bot/inventory/drop",
-        {
-          method: "POST",
-
-          headers: {
-            Authorization:
-              "Bearer " +
-              authToken,
-
-            "Content-Type":
-              "application/json"
-          }
-        }
-      );
-
-    const data =
-      await response.json();
-
-    if (!response.ok) {
-
-      alert(
-        data.error ||
-        "Could not drop inventory."
-      );
-
-      addLog(
-        "[INVENTORY ERROR] " +
-        (
-          data.error ||
-          "Drop failed."
-        )
-      );
-
-      return;
-    }
-
-    addLog(
-      "[INVENTORY] " +
-      (
-        data.message ||
-        "Main inventory drop requested."
-      )
-    );
-
-    setTimeout(
-      loadInventory,
-      1000
-    );
-
-  } catch (err) {
-
-    alert(
-      "Could not connect to Hqbot."
-    );
-
-    addLog(
-      "[INVENTORY ERROR] Connection failed."
-    );
-
-  } finally {
-
-    button.disabled =
-      false;
-
-    button.textContent =
-      "🗑️ Drop Inventory";
-  }
-}
-
-
-/* =========================================================
-   MICROSOFT ACCOUNT
-   ========================================================= */
+/* =========================
+   MICROSOFT LOGIN
+========================= */
 
 function openAccountModal() {
 
   document.getElementById(
     "accountModal"
-  ).style.display =
-    "flex";
+  ).style.display = "flex";
+
+
+  document.getElementById(
+    "deviceCode"
+  ).style.display = "none";
+
+
+  document.getElementById(
+    "startMicrosoftButton"
+  ).disabled = false;
+
+
+  document.getElementById(
+    "startMicrosoftButton"
+  ).textContent =
+    "Sign in with Microsoft";
+
+
+  document.getElementById(
+    "codeText"
+  ).textContent =
+    "------";
+
+
+  document.getElementById(
+    "loginWaiting"
+  ).textContent =
+    "⏳ Waiting for Microsoft sign-in...";
+
+
+  microsoftVerificationUri = "";
+  microsoftSessionId = "";
+
 }
 
 
@@ -2513,6 +1411,28 @@ function closeAccountModal() {
     "accountModal"
   ).style.display =
     "none";
+
+}
+
+
+function openMicrosoftLogin() {
+
+  if (!microsoftVerificationUri) {
+
+    alert(
+      "Microsoft login is not ready yet."
+    );
+
+    return;
+
+  }
+
+
+  window.open(
+    microsoftVerificationUri,
+    "_blank"
+  );
+
 }
 
 
@@ -2525,23 +1445,27 @@ async function startMicrosoftLogin() {
     );
 
     return;
+
   }
+
 
   const button =
     document.getElementById(
       "startMicrosoftButton"
     );
 
+
   const deviceBox =
     document.getElementById(
       "deviceCode"
     );
 
-  button.disabled =
-    true;
+
+  button.disabled = true;
 
   button.textContent =
-    "Starting...";
+    "Starting Microsoft Login...";
+
 
   try {
 
@@ -2550,18 +1474,21 @@ async function startMicrosoftLogin() {
         HQBOT_API +
         "/api/microsoft/login",
         {
+
           method: "POST",
 
           headers: {
             Authorization:
-              "Bearer " +
-              authToken
+              "Bearer " + authToken
           }
+
         }
       );
 
+
     const data =
       await response.json();
+
 
     if (!response.ok) {
 
@@ -2570,25 +1497,34 @@ async function startMicrosoftLogin() {
         "Microsoft login could not start."
       );
 
-      button.disabled =
-        false;
+
+      button.disabled = false;
 
       button.textContent =
         "Sign in with Microsoft";
 
       return;
+
     }
+
+
+    microsoftSessionId =
+      data.sessionId;
+
 
     deviceBox.style.display =
       "block";
+
 
     addLog(
       "[MICROSOFT] Device login started."
     );
 
+
     pollMicrosoftLogin(
-      data.sessionId
+      microsoftSessionId
     );
+
 
   } catch (err) {
 
@@ -2596,22 +1532,18 @@ async function startMicrosoftLogin() {
       "Could not connect to Hqbot."
     );
 
-    button.disabled =
-      false;
+
+    button.disabled = false;
 
     button.textContent =
       "Sign in with Microsoft";
+
   }
+
 }
 
 
-/* =========================================================
-   MICROSOFT LOGIN STATUS
-   ========================================================= */
-
-async function pollMicrosoftLogin(
-  sessionId
-) {
+async function pollMicrosoftLogin(sessionId) {
 
   try {
 
@@ -2619,18 +1551,45 @@ async function pollMicrosoftLogin(
       await fetch(
         HQBOT_API +
         "/api/microsoft/login/" +
-        sessionId,
+        encodeURIComponent(sessionId),
         {
+
           headers: {
             Authorization:
-              "Bearer " +
-              authToken
+              "Bearer " + authToken
           }
+
         }
       );
 
+
     const data =
       await response.json();
+
+
+    if (!response.ok) {
+
+      addLog(
+        "[MICROSOFT] " +
+        (
+          data.error ||
+          "Login status unavailable."
+        )
+      );
+
+
+      setTimeout(
+        () =>
+          pollMicrosoftLogin(sessionId),
+        3000
+      );
+
+      return;
+
+    }
+
+
+    /* DEVICE CODE */
 
     if (data.code) {
 
@@ -2638,131 +1597,666 @@ async function pollMicrosoftLogin(
         "codeText"
       ).textContent =
         data.code;
+
     }
+
+
+    /* MICROSOFT URL */
 
     if (data.verificationUri) {
 
+      microsoftVerificationUri =
+        data.verificationUri;
+
+
       document.getElementById(
         "verificationText"
-      ).innerHTML =
-        "Open: <b>" +
-        escapeHtml(
-          data.verificationUri
-        ) +
-        "</b>";
+      ).textContent =
+        "Tap the button above, enter the code, then sign in with your Microsoft account.";
+
     }
+
+
+    /* MICROSOFT LOGIN FINISHED */
+
+    if (
+      data.status ===
+      "microsoft_connected"
+    ) {
+
+      document.getElementById(
+        "loginWaiting"
+      ).textContent =
+        "✅ Microsoft account connected. Starting Minecraft bot...";
+
+
+      document.getElementById(
+        "accountStatus"
+      ).textContent =
+        "Microsoft account connected. Starting Minecraft bot...";
+
+
+      addLog(
+        "[MICROSOFT] Microsoft account connected."
+      );
+
+
+      setTimeout(
+        () =>
+          pollMicrosoftLogin(sessionId),
+        1000
+      );
+
+
+      return;
+
+    }
+
+
+    /* BOT CONNECTED */
 
     if (
       data.status ===
       "connected"
     ) {
 
-      addLog(
-        "[MICROSOFT] Account connected!"
-      );
+      document.getElementById(
+        "loginWaiting"
+      ).textContent =
+        "✅ Account added successfully!";
 
+
+      document.getElementById(
+        "accountStatus"
+      ).textContent =
+        "✅ Microsoft account connected.";
+
+      
       document.getElementById(
         "startMicrosoftButton"
       ).textContent =
-        "Connected ✓";
+        "Account Connected ✓";
+
+
+      document.getElementById(
+        "startMicrosoftButton"
+      ).disabled = true;
+
+
+      addLog(
+        "[MICROSOFT] Account added successfully."
+      );
+
 
       refreshBotStatus();
 
+
+      setTimeout(
+        closeAccountModal,
+        1500
+      );
+
+
       return;
+
     }
+
+
+    /* ERROR */
 
     if (
       data.status ===
       "error"
     ) {
 
+      document.getElementById(
+        "loginWaiting"
+      ).textContent =
+        "❌ Microsoft login failed.";
+
+
       addLog(
-        "[ERROR] " +
+        "[MICROSOFT ERROR] " +
         (
           data.error ||
           "Microsoft login failed."
         )
       );
 
+
       document.getElementById(
         "startMicrosoftButton"
-      ).disabled =
-        false;
+      ).disabled = false;
+
 
       document.getElementById(
         "startMicrosoftButton"
       ).textContent =
-        "Sign in with Microsoft";
+        "Try Again";
+
 
       return;
+
     }
+
+
+    /* KEEP WAITING */
 
     setTimeout(
       () =>
-        pollMicrosoftLogin(
-          sessionId
-        ),
+        pollMicrosoftLogin(sessionId),
       2000
     );
+
 
   } catch (err) {
 
     addLog(
-      "[ERROR] Lost connection to Microsoft login."
+      "[MICROSOFT] Waiting for connection..."
     );
+
+
+    setTimeout(
+      () =>
+        pollMicrosoftLogin(sessionId),
+      3000
+    );
+
   }
+
 }
 
 
-/* =========================================================
-   RESTORE LOGIN
-   ========================================================= */
+/* =========================
+   BOT STATUS
+========================= */
 
-async function checkLogin() {
+async function refreshBotStatus() {
 
-  if (!authToken) {
-
-    showAuth();
-
+  if (!authToken)
     return;
+
+
+  try {
+
+    const response =
+      await fetch(
+        HQBOT_API + "/api/status",
+        {
+
+          headers: {
+            Authorization:
+              "Bearer " + authToken
+          }
+
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (!response.ok)
+      return;
+
+
+    const online =
+      data.status === "online" ||
+      data.connected === true ||
+      data.spawned === true;
+
+
+    const statusText =
+      online ? "Online" : "Offline";
+
+
+    const dashboardText =
+      document.getElementById(
+        "dashboardBotStatus"
+      );
+
+
+    const botText =
+      document.getElementById(
+        "botStatusText"
+      );
+
+
+    if (dashboardText)
+      dashboardText.textContent =
+        statusText;
+
+
+    if (botText)
+      botText.textContent =
+        statusText;
+
+
+    const dashboardDot =
+      document.getElementById(
+        "dashboardStatusDot"
+      );
+
+
+    const botDot =
+      document.getElementById(
+        "botStatusDot"
+      );
+
+
+    if (dashboardDot) {
+
+      dashboardDot.classList.toggle(
+        "online",
+        online
+      );
+
+    }
+
+
+    if (botDot) {
+
+      botDot.classList.toggle(
+        "online",
+        online
+      );
+
+    }
+
+
+    if (data.username) {
+
+      document.getElementById(
+        "accountStatus"
+      ).textContent =
+        "✅ Connected: " +
+        data.username;
+
+    }
+
+
+  } catch (err) {
+
+    addLog(
+      "[STATUS] Could not refresh bot status."
+    );
+
   }
+
+}
+
+
+/* =========================
+   CONSOLE
+========================= */
+
+function addLog(message) {
+
+  const consoleBox =
+    document.getElementById(
+      "console"
+    );
+
+
+  if (!consoleBox)
+    return;
+
+
+  const line =
+    document.createElement(
+      "div"
+    );
+
+
+  line.className =
+    "consoleLine";
+
+
+  const time =
+    new Date().toLocaleTimeString();
+
+
+  line.textContent =
+    "[" + time + "] " +
+    message;
+
+
+  consoleBox.appendChild(
+    line
+  );
+
+
+  consoleBox.scrollTop =
+    consoleBox.scrollHeight;
+
+}
+
+
+/* =========================
+   INVENTORY
+========================= */
+
+async function loadInventory() {
+
+  if (!authToken)
+    return;
+
 
   try {
 
     const response =
       await fetch(
         HQBOT_API +
-        "/api/auth/me",
+        "/api/inventory",
         {
+
           headers: {
             Authorization:
-              "Bearer " +
-              authToken
+              "Bearer " + authToken
           }
+
         }
       );
 
-    if (response.ok) {
 
-      showDashboard();
+    const data =
+      await response.json();
 
-    } else {
 
-      authToken = null;
+    if (!response.ok) {
 
-      sessionStorage.removeItem(
-        "hqbotToken"
+      addLog(
+        "[INVENTORY ERROR] " +
+        (
+          data.error ||
+          "Could not load inventory."
+        )
       );
 
-      showAuth();
+      return;
+
     }
+
+
+    renderInventory(
+      data.inventory ||
+      data.items ||
+      []
+    );
+
 
   } catch (err) {
 
-    showAuth();
+    addLog(
+      "[INVENTORY] Could not connect."
+    );
+
   }
+
 }
 
+
+function renderInventory(items) {
+
+  const main =
+    document.getElementById(
+      "mainInventory"
+    );
+
+
+  const hotbar =
+    document.getElementById(
+      "hotbarInventory"
+    );
+
+
+  main.innerHTML = "";
+  hotbar.innerHTML = "";
+
+
+  /* MAIN INVENTORY 9-35 */
+
+  for (
+    let slot = 9;
+    slot <= 35;
+    slot++
+  ) {
+
+    const item =
+      items.find(
+        x => Number(x.slot) === slot
+      );
+
+
+    const div =
+      document.createElement(
+        "div"
+      );
+
+
+    div.className =
+      "inventorySlot";
+
+
+    if (item) {
+
+      div.innerHTML =
+        `
+        <div class="itemName">
+          ${escapeHtml(
+            item.name ||
+            item.type ||
+            "Item"
+          )}
+        </div>
+
+        <div class="itemCount">
+          ${Number(
+            item.count || 0
+          )}
+        </div>
+        `;
+
+    }
+
+
+    main.appendChild(
+      div
+    );
+
+  }
+
+
+  /* HOTBAR 0-8 */
+
+  for (
+    let slot = 0;
+    slot <= 8;
+    slot++
+  ) {
+
+    const item =
+      items.find(
+        x => Number(x.slot) === slot
+      );
+
+
+    const div =
+      document.createElement(
+        "div"
+      );
+
+
+    div.className =
+      "inventorySlot protected";
+
+
+    if (item) {
+
+      div.innerHTML =
+        `
+        <div class="itemName">
+          ${escapeHtml(
+            item.name ||
+            item.type ||
+            "Item"
+          )}
+        </div>
+
+        <div class="itemCount">
+          ${Number(
+            item.count || 0
+          )}
+        </div>
+        `;
+
+    }
+
+
+    hotbar.appendChild(
+      div
+    );
+
+  }
+
+}
+
+
+function escapeHtml(text) {
+
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+}
+
+
+async function dropInventory() {
+
+  if (!confirm(
+    "Drop all items from the main inventory? The hotbar will NOT be touched."
+  )) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const response =
+      await fetch(
+        HQBOT_API +
+        "/api/inventory/drop",
+        {
+
+          method: "POST",
+
+          headers: {
+            Authorization:
+              "Bearer " + authToken,
+            "Content-Type":
+              "application/json"
+          }
+
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (!response.ok) {
+
+      alert(
+        data.error ||
+        "Could not drop inventory."
+      );
+
+      return;
+
+    }
+
+
+    addLog(
+      "[INVENTORY] Main inventory drop requested."
+    );
+
+
+    loadInventory();
+
+
+  } catch (err) {
+
+    alert(
+      "Could not connect to Hqbot."
+    );
+
+  }
+
+}
+
+
+/* =========================
+   AUTO LOGIN
+========================= */
+
+async function checkLogin() {
+
+  if (!authToken)
+    return;
+
+
+  try {
+
+    const response =
+      await fetch(
+        HQBOT_API + "/api/me",
+        {
+
+          headers: {
+            Authorization:
+              "Bearer " + authToken
+          }
+
+        }
+      );
+
+
+    if (!response.ok) {
+
+      logout();
+
+      return;
+
+    }
+
+
+    showDashboard();
+
+
+  } catch (err) {
+
+    /*
+      Keep the token.
+      Railway may simply be waking up.
+    */
+
+    showDashboard();
+
+  }
+
+}
+
+
+/* =========================
+   START
+========================= */
 
 checkLogin();
 
