@@ -33,6 +33,7 @@ if (!fs.existsSync(DATA_DIR)) {
 
 const USERS_FILE = path.join(DATA_DIR, "users.json");
 const SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
+const KEYS_FILE = path.join(DATA_DIR, "keys.json");
 
 function loadJSON(file, fallback) {
   try {
@@ -65,6 +66,10 @@ function saveJSON(file, data) {
   }
 }
 
+/* =========================================================
+   LOAD DATA
+   ========================================================= */
+
 const users = new Map(
   Object.entries(
     loadJSON(USERS_FILE, {})
@@ -77,10 +82,25 @@ const loginSessions = new Map(
   )
 );
 
+/*
+  Activation keys are stored like:
+
+  {
+    "HQ-ABC123...": {
+      "type": "monthly",
+      "createdAt": 123456789
+    }
+  }
+*/
+
+const activationKeys = new Map(
+  Object.entries(
+    loadJSON(KEYS_FILE, {})
+  )
+);
+
 const microsoftSessions = new Map();
 const activeBots = new Map();
-
-let activeActivationKey = null;
 
 /* =========================================================
    PASSWORD SECURITY
@@ -208,22 +228,26 @@ function generateActivationKey() {
   );
 }
 
+function saveActivationKeys() {
+  saveJSON(
+    KEYS_FILE,
+    Object.fromEntries(activationKeys)
+  );
+}
+
 /*
-  Only ONE activation key can exist at a time.
+  Every generated key is independent.
 
-  Example:
+  You can generate:
 
-  {
-    key: "HQ-XXXXXXXX",
-    type: "monthly"
-  }
+  Monthly Key A
+  Monthly Key B
+  Monthly Key C
+  Lifetime Key A
+  Lifetime Key B
+  etc.
 
-  OR
-
-  {
-    key: "HQ-XXXXXXXX",
-    type: "lifetime"
-  }
+  They do NOT overwrite each other.
 */
 
 /* =========================================================
@@ -346,29 +370,39 @@ app.post(
       });
     }
 
-    if (!activeActivationKey) {
-      return res.status(400).json({
-        error:
-          "No activation key is currently available."
-      });
-    }
+    /*
+      Find the exact key.
+    */
 
-    if (
-      activationKey !==
-      activeActivationKey.key
-    ) {
+    const keyData =
+      activationKeys.get(
+        activationKey
+      );
+
+    if (!keyData) {
       return res.status(400).json({
         error:
           "Invalid activation key."
       });
     }
 
+    /*
+      The key is consumed ONLY after
+      successful registration.
+    */
+
     const plan =
-      activeActivationKey.type;
+      keyData.type;
 
     const now = Date.now();
 
     let expiresAt = null;
+
+    /*
+      IMPORTANT:
+      The 30-day timer starts HERE,
+      when the person uses the key.
+    */
 
     if (plan === "monthly") {
       expiresAt =
@@ -382,16 +416,19 @@ app.post(
 
     const user = {
       username,
+
       password:
         hashPassword(password),
 
       plan,
 
-      activatedAt: now,
+      activatedAt:
+        now,
 
       expiresAt,
 
-      createdAt: now
+      createdAt:
+        now
     };
 
     users.set(
@@ -405,24 +442,35 @@ app.post(
     );
 
     /*
-      The activation key is consumed here.
-
-      Monthly timer starts when the key
-      is actually used.
+      Delete the used activation key.
+      This makes each key single-use.
     */
 
-    activeActivationKey = null;
+    activationKeys.delete(
+      activationKey
+    );
+
+    saveActivationKeys();
+
+    /*
+      Automatically log the user in.
+    */
 
     const token =
       createLoginToken(username);
 
     res.json({
       success: true,
+
       message:
         "Account created successfully.",
+
       token,
+
       username,
+
       plan,
+
       expiresAt
     });
   }
@@ -470,10 +518,9 @@ app.post(
     }
 
     /*
-      No automatic session expiration.
+      No automatic expiration of the login session.
 
-      The user stays logged in until
-      they press Logout.
+      The user stays logged in until Logout.
     */
 
     const token =
@@ -481,12 +528,19 @@ app.post(
 
     res.json({
       success: true,
+
       message:
         "Login successful.",
+
       token,
+
       username,
-      plan: user.plan,
-      expiresAt: user.expiresAt
+
+      plan:
+        user.plan,
+
+      expiresAt:
+        user.expiresAt
     });
   }
 );
@@ -511,6 +565,7 @@ app.post(
 
     res.json({
       success: true,
+
       message:
         "Logged out."
     });
@@ -549,7 +604,8 @@ app.get(
 
       username,
 
-      plan: user.plan,
+      plan:
+        user.plan,
 
       activatedAt:
         user.activatedAt,
@@ -567,7 +623,7 @@ app.get(
 );
 
 /* =========================================================
-   PLAN
+   PLAN INFORMATION
    ========================================================= */
 
 app.get(
@@ -674,23 +730,6 @@ app.post(
       return;
     }
 
-    if (activeActivationKey) {
-      return res.json({
-        success: true,
-
-        message:
-          "An activation key is already active.",
-
-        active: true,
-
-        key:
-          activeActivationKey.key,
-
-        type:
-          activeActivationKey.type
-      });
-    }
-
     const type =
       req.body.type;
 
@@ -707,18 +746,23 @@ app.post(
     const key =
       generateActivationKey();
 
-    activeActivationKey = {
+    activationKeys.set(
       key,
-      type
-    };
+      {
+        type,
+
+        createdAt:
+          Date.now()
+      }
+    );
+
+    saveActivationKeys();
 
     res.json({
       success: true,
 
       message:
         "New activation key generated.",
-
-      active: true,
 
       key,
 
@@ -738,14 +782,29 @@ app.get(
       return;
     }
 
+    const keys =
+      Array.from(
+        activationKeys.entries()
+      ).map(
+        ([key, data]) => ({
+          key,
+
+          type:
+            data.type,
+
+          createdAt:
+            data.createdAt
+        })
+      );
+
     res.json({
       active:
-        !!activeActivationKey,
+        keys.length > 0,
 
-      type:
-        activeActivationKey
-          ? activeActivationKey.type
-          : null
+      total:
+        keys.length,
+
+      keys
     });
   }
 );
@@ -779,12 +838,14 @@ app.post(
         status:
           "starting",
 
-        code: null,
+        code:
+          null,
 
         verificationUri:
           null,
 
-        message: null,
+        message:
+          null,
 
         botStatus:
           "offline"
@@ -855,9 +916,9 @@ app.post(
       session.status =
         "microsoft_connected";
 
-      /*
-        Connect to Lifeboat.
-      */
+      /* =====================================================
+         LIFEBOAT CONNECTION
+         ===================================================== */
 
       const host =
         process.env.LBSG_HOST;
@@ -869,9 +930,6 @@ app.post(
         );
 
       if (!host) {
-        session.status =
-          "microsoft_connected";
-
         session.botStatus =
           "waiting_for_lifeboat";
 
@@ -1267,6 +1325,16 @@ app.post(
     }
 
     try {
+      /*
+        Send the command through the
+        Bedrock text packet.
+
+        Example:
+        /hub
+        /tpa PlayerName
+        /msg PlayerName hello
+      */
+
       const message =
         command.startsWith("/")
           ? command
@@ -1292,7 +1360,8 @@ app.post(
         success:
           true,
 
-        command
+        command:
+          message
       });
 
     } catch (error) {
@@ -1305,7 +1374,7 @@ app.post(
 );
 
 /* =========================================================
-   DISCORD BOT
+   DISCORD
    ========================================================= */
 
 const discordClient =
@@ -1374,6 +1443,10 @@ discordClient.once(
   }
 );
 
+/* =========================================================
+   DISCORD COMMAND HANDLER
+   ========================================================= */
+
 discordClient.on(
   "interactionCreate",
   async (interaction) => {
@@ -1383,63 +1456,79 @@ discordClient.on(
       return;
     }
 
+    /* =====================================================
+       MONTHLY
+       ===================================================== */
+
     if (
-      interaction.commandName !==
-        "genkeymonthly" &&
-      interaction.commandName !==
-        "genkeylifetime"
+      interaction.commandName ===
+      "genkeymonthly"
     ) {
-      return;
-    }
+      const key =
+        generateActivationKey();
 
-    /*
-      Only one active key.
-    */
+      activationKeys.set(
+        key,
+        {
+          type:
+            "monthly",
 
-    if (activeActivationKey) {
+          createdAt:
+            Date.now()
+        }
+      );
+
+      saveActivationKeys();
+
       return interaction.reply({
         content:
-          `⚠️ An activation key is already active.\n\n` +
-          `Type: **${activeActivationKey.type}**\n` +
-          `Key: \`${activeActivationKey.key}\``,
+          `🔐 **Hqbot Monthly Key**\n\n` +
+          `\`${key}\`\n\n` +
+          `⏳ 30 days start when the key is used.`,
         ephemeral:
           true
       });
     }
 
-    const type =
+    /* =====================================================
+       LIFETIME
+       ===================================================== */
+
+    if (
       interaction.commandName ===
-      "genkeymonthly"
-        ? "monthly"
-        : "lifetime";
+      "genkeylifetime"
+    ) {
+      const key =
+        generateActivationKey();
 
-    const key =
-      generateActivationKey();
+      activationKeys.set(
+        key,
+        {
+          type:
+            "lifetime",
 
-    activeActivationKey = {
-      key,
-      type
-    };
+          createdAt:
+            Date.now()
+        }
+      );
 
-    const description =
-      type === "monthly"
-        ? "30 days after activation"
-        : "Never expires";
+      saveActivationKeys();
 
-    await interaction.reply({
-      content:
-        `🔐 **Hqbot ${type} key**\n\n` +
-        `\`${key}\`\n\n` +
-        `⏳ ${description}`,
-      ephemeral:
-        true
-    });
-
-    console.log(
-      `Generated ${type} activation key.`
-    );
+      return interaction.reply({
+        content:
+          `♾️ **Hqbot Lifetime Key**\n\n` +
+          `\`${key}\`\n\n` +
+          `♾️ Never expires.`,
+        ephemeral:
+          true
+      });
+    }
   }
 );
+
+/* =========================================================
+   START DISCORD
+   ========================================================= */
 
 if (
   process.env.DISCORD_BOT_TOKEN
