@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Hqbot</title>
 
 <style>
@@ -19,92 +20,113 @@ body {
   min-height: 100vh;
 }
 
-button {
-  cursor: pointer;
-}
-
-.hidden {
-  display: none !important;
-}
-
 /* =========================
    AUTH
 ========================= */
 
-#authPage {
+.auth-page {
   min-height: 100vh;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   padding: 20px;
+  background:
+    radial-gradient(circle at top, #16231d 0%, #080b0a 45%);
 }
 
-.authBox {
+.auth-box {
   width: 100%;
   max-width: 420px;
-  background: #111614;
-  border: 1px solid #26312d;
+  background: #101513;
+  border: 1px solid #26352e;
   border-radius: 18px;
   padding: 30px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  box-shadow: 0 20px 60px rgba(0,0,0,.45);
 }
 
 .logo {
   text-align: center;
   font-size: 32px;
-  font-weight: bold;
+  font-weight: 800;
   margin-bottom: 8px;
+}
+
+.logo span {
+  color: #55e38a;
 }
 
 .subtitle {
   text-align: center;
-  color: #8e9994;
+  color: #8e9a94;
   margin-bottom: 28px;
 }
 
-.input {
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-group label {
+  display: block;
+  color: #aeb8b3;
+  font-size: 13px;
+  margin-bottom: 7px;
+}
+
+input {
   width: 100%;
-  background: #090c0b;
+  background: #080b0a;
   color: white;
-  border: 1px solid #29332f;
+  border: 1px solid #29372f;
   border-radius: 10px;
-  padding: 14px;
-  margin-bottom: 12px;
+  padding: 13px;
   outline: none;
+  font-size: 14px;
 }
 
-.input:focus {
-  border-color: #657a70;
+input:focus {
+  border-color: #55e38a;
 }
 
-.primaryBtn {
-  width: 100%;
-  border: 0;
+button {
+  border: none;
+  cursor: pointer;
   border-radius: 10px;
-  padding: 14px;
-  background: #e8eee9;
-  color: #101411;
-  font-weight: bold;
+  padding: 12px 16px;
+  font-weight: 700;
+  transition: .15s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+.primary-btn {
+  width: 100%;
+  background: #55e38a;
+  color: #061008;
   margin-top: 5px;
 }
 
-.secondaryBtn {
+.secondary-btn {
   width: 100%;
-  border: 1px solid #303b36;
-  border-radius: 10px;
-  padding: 13px;
-  background: #151b18;
+  background: #1a231f;
   color: white;
-  font-weight: bold;
+  border: 1px solid #2c3a33;
   margin-top: 10px;
 }
 
-.authMessage {
+.danger-btn {
+  background: #35191b;
+  color: #ff9b9f;
+  border: 1px solid #562629;
+}
+
+.auth-message {
+  min-height: 20px;
   margin-top: 15px;
   text-align: center;
   color: #ff7777;
   font-size: 14px;
-  line-height: 1.5;
   word-break: break-word;
 }
 
@@ -112,68 +134,90 @@ button {
    APP
 ========================= */
 
-#appPage {
+.app {
+  display: none;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 230px;
+  height: 100vh;
+  background: #0d1210;
+  border-right: 1px solid #202b26;
+  padding: 22px 14px;
+  z-index: 10;
+}
+
+.sidebar-logo {
+  font-size: 25px;
+  font-weight: 800;
+  padding: 0 12px;
+  margin-bottom: 28px;
+}
+
+.sidebar-logo span {
+  color: #55e38a;
+}
+
+.nav-btn {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  color: #9da8a3;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  padding: 12px;
+  font-weight: 600;
+}
+
+.nav-btn:hover,
+.nav-btn.active {
+  background: #17221c;
+  color: #55e38a;
+}
+
+.logout-btn {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 20px;
+  width: calc(100% - 28px);
+  background: #261517;
+  color: #ff8f94;
+}
+
+.main {
+  margin-left: 230px;
+  padding: 30px;
   min-height: 100vh;
 }
 
 .topbar {
-  height: 65px;
-  background: #0d110f;
-  border-bottom: 1px solid #222b27;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
+  align-items: center;
+  margin-bottom: 28px;
 }
 
-.topLogo {
-  font-size: 22px;
-  font-weight: bold;
+.page-title {
+  font-size: 28px;
+  font-weight: 800;
 }
 
-.logoutBtn {
-  background: #171d1a;
-  color: white;
-  border: 1px solid #303a35;
-  border-radius: 8px;
-  padding: 9px 14px;
+.user-badge {
+  background: #121b16;
+  border: 1px solid #25332b;
+  padding: 9px 13px;
+  border-radius: 10px;
+  color: #aeb8b3;
 }
 
-.layout {
-  display: flex;
-  min-height: calc(100vh - 65px);
-}
-
-.sidebar {
-  width: 220px;
-  background: #0d110f;
-  border-right: 1px solid #222b27;
-  padding: 18px 12px;
-}
-
-.navBtn {
-  width: 100%;
-  background: transparent;
-  color: #89948f;
-  border: 0;
-  padding: 13px;
-  text-align: left;
-  border-radius: 9px;
-  margin-bottom: 5px;
-  font-size: 14px;
-}
-
-.navBtn:hover,
-.navBtn.active {
-  background: #19201c;
-  color: white;
-}
-
-.content {
-  flex: 1;
-  padding: 25px;
-  max-width: 1200px;
-}
+/* =========================
+   PAGES
+========================= */
 
 .page {
   display: none;
@@ -183,287 +227,358 @@ button {
   display: block;
 }
 
-.pageTitle {
-  font-size: 27px;
-  margin-bottom: 7px;
-}
-
-.pageSubtitle {
-  color: #7f8b85;
-  margin-bottom: 22px;
-}
-
-/* =========================
-   CARDS
-========================= */
-
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 15px;
 }
 
 .card {
-  background: #111614;
-  border: 1px solid #26312d;
-  border-radius: 15px;
+  background: #101613;
+  border: 1px solid #25322c;
+  border-radius: 14px;
   padding: 20px;
 }
 
-.cardTitle {
+.card-title {
   color: #8e9994;
   font-size: 13px;
-  margin-bottom: 9px;
+  margin-bottom: 10px;
 }
 
-.cardValue {
+.card-value {
   font-size: 24px;
-  font-weight: bold;
+  font-weight: 800;
 }
 
-.durationCard {
-  margin-top: 18px;
-  background: #111614;
-  border: 1px solid #26312d;
-  border-radius: 15px;
-  padding: 20px;
+.green {
+  color: #55e38a;
 }
 
-.durationTitle {
-  color: #8e9994;
-  font-size: 13px;
+.red {
+  color: #ff7777;
 }
 
-.durationPlan {
-  font-size: 18px;
-  font-weight: bold;
-  margin-top: 6px;
+.yellow {
+  color: #ffd166;
 }
 
-.durationValue {
-  font-size: 26px;
-  font-weight: bold;
-  margin-top: 8px;
+.section {
+  margin-top: 20px;
 }
 
-/* =========================
-   ACCOUNT
-========================= */
-
-.accountBox {
-  background: #111614;
-  border: 1px solid #26312d;
-  border-radius: 15px;
-  padding: 20px;
-  margin-bottom: 15px;
-}
-
-.accountName {
+.section-title {
   font-size: 19px;
-  font-weight: bold;
+  font-weight: 800;
+  margin-bottom: 13px;
 }
 
-.accountPlan {
-  color: #89948f;
-  margin-top: 5px;
+.account-card {
+  max-width: 700px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 14px 0;
+  border-bottom: 1px solid #202b26;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: #89958f;
+}
+
+.info-value {
+  font-weight: 700;
+  text-align: right;
+  word-break: break-word;
 }
 
 /* =========================
-   STATUS
+   BOT
 ========================= */
 
-.status {
+.bot-card {
+  max-width: 700px;
+}
+
+.bot-status {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 12px;
-  color: #9ba59f;
+  background: #151e19;
+  border: 1px solid #27352e;
+  padding: 8px 11px;
+  border-radius: 20px;
+  margin-bottom: 18px;
 }
 
-.dot {
+.status-dot {
   width: 9px;
   height: 9px;
   border-radius: 50%;
   background: #777;
 }
 
-.dot.online {
-  background: #65d98a;
+.status-dot.online {
+  background: #55e38a;
+}
+
+.status-dot.offline {
+  background: #ff6666;
+}
+
+.bot-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.bot-actions button {
+  background: #17231c;
+  color: #55e38a;
+  border: 1px solid #2d4135;
+}
+
+.bot-actions button:hover {
+  background: #1d2d24;
 }
 
 /* =========================
    CONSOLE
 ========================= */
 
-.console {
+.console-box {
   background: #050706;
-  border: 1px solid #29332f;
-  border-radius: 12px;
-  padding: 15px;
-  min-height: 300px;
-  white-space: pre-wrap;
-  color: #b9c5bf;
+  border: 1px solid #25322c;
+  border-radius: 14px;
+  min-height: 420px;
+  padding: 18px;
   font-family: monospace;
-  overflow: auto;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
-.commandRow {
+.console-line {
+  margin-bottom: 7px;
+  color: #a9b5ae;
+}
+
+.console-line.success {
+  color: #55e38a;
+}
+
+.console-line.error {
+  color: #ff7777;
+}
+
+.console-input-row {
   display: flex;
   gap: 10px;
   margin-top: 12px;
 }
 
-.commandInput {
+.console-input-row input {
   flex: 1;
-  background: #090c0b;
-  border: 1px solid #29332f;
-  color: white;
-  border-radius: 9px;
-  padding: 12px;
 }
 
-.commandBtn {
-  background: #e8eee9;
-  color: #101411;
-  border: 0;
-  border-radius: 9px;
-  padding: 12px 18px;
-  font-weight: bold;
+.console-input-row button {
+  background: #55e38a;
+  color: #061008;
 }
 
 /* =========================
    INVENTORY
 ========================= */
 
-.inventoryGrid {
+.inventory-grid {
   display: grid;
   grid-template-columns: repeat(9, 1fr);
-  gap: 7px;
-  margin-top: 15px;
+  gap: 8px;
+  margin-top: 18px;
 }
 
-.slot {
-  min-height: 65px;
-  background: #0b0f0d;
-  border: 1px solid #29332f;
-  border-radius: 7px;
-  padding: 6px;
-  text-align: center;
+.inventory-slot {
+  min-height: 72px;
+  background: #111713;
+  border: 1px solid #29362f;
+  border-radius: 8px;
+  padding: 7px;
+  position: relative;
+}
+
+.inventory-slot.hotbar {
+  border-color: #55e38a;
+}
+
+.slot-number {
+  color: #6e7973;
+  font-size: 10px;
+}
+
+.slot-name {
   font-size: 11px;
-}
-
-.slotNumber {
-  color: #66726c;
-}
-
-.slotItem {
-  margin-top: 8px;
-  font-weight: bold;
+  margin-top: 9px;
   word-break: break-word;
 }
 
-.dropBtn {
-  margin-top: 15px;
-  background: #291616;
-  color: #ffb0b0;
-  border: 1px solid #512727;
-  padding: 11px 16px;
-  border-radius: 9px;
+.slot-count {
+  position: absolute;
+  right: 6px;
+  bottom: 5px;
+  color: #55e38a;
+  font-weight: 800;
+}
+
+.drop-btn {
+  width: 100%;
+  margin-top: 8px;
+  padding: 5px;
+  background: #301719;
+  color: #ff999d;
+  font-size: 10px;
 }
 
 /* =========================
-   MICROSOFT MODAL
+   MODAL
 ========================= */
 
 .modal {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.75);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
-  padding: 20px;
   z-index: 100;
+  padding: 20px;
 }
 
-.modalBox {
+.modal.show {
+  display: flex;
+}
+
+.modal-box {
   width: 100%;
-  max-width: 450px;
-  background: #111614;
-  border: 1px solid #303b36;
-  border-radius: 17px;
+  max-width: 460px;
+  background: #101613;
+  border: 1px solid #2b3a32;
+  border-radius: 18px;
   padding: 25px;
-  text-align: center;
 }
 
-.modalTitle {
-  font-size: 23px;
-  font-weight: bold;
+.modal-title {
+  font-size: 21px;
+  font-weight: 800;
   margin-bottom: 10px;
 }
 
-.code {
-  background: #080b0a;
-  border: 1px solid #29332f;
-  border-radius: 10px;
-  padding: 17px;
-  font-size: 25px;
-  font-weight: bold;
-  letter-spacing: 2px;
-  margin: 18px 0;
-  user-select: all;
-}
-
-.modalText {
-  color: #8d9993;
-  font-size: 14px;
+.modal-text {
+  color: #929e98;
   line-height: 1.5;
+  margin-bottom: 20px;
 }
 
-.modalBtn {
-  width: 100%;
-  margin-top: 10px;
-  padding: 13px;
-  border-radius: 9px;
-  border: 0;
-  font-weight: bold;
+.code-box {
+  background: #070a08;
+  border: 1px solid #334239;
+  border-radius: 12px;
+  text-align: center;
+  padding: 18px;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  color: #55e38a;
+  margin-bottom: 15px;
+  word-break: break-word;
 }
 
-.microsoftBtn {
-  background: #e8eee9;
-  color: #101411;
+.modal-actions {
+  display: flex;
+  gap: 10px;
 }
 
-.closeBtn {
-  background: #191f1c;
+.modal-actions button {
+  flex: 1;
+}
+
+.open-ms-btn {
+  background: #55e38a;
+  color: #061008;
+}
+
+.close-modal-btn {
+  background: #202923;
   color: white;
-  border: 1px solid #303b36;
 }
 
 /* =========================
-   MOBILE
+   RESPONSIVE
 ========================= */
 
-@media(max-width:700px) {
+@media (max-width: 900px) {
 
   .sidebar {
-    width: 65px;
-    padding: 10px 7px;
+    width: 190px;
   }
 
-  .navBtn {
-    font-size: 0;
-    text-align: center;
+  .main {
+    margin-left: 190px;
   }
 
-  .content {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .inventory-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid #202b26;
+  }
+
+  .sidebar-logo {
+    margin-bottom: 12px;
+  }
+
+  .logout-btn {
+    position: static;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .main {
+    margin-left: 0;
     padding: 18px;
   }
 
-  .inventoryGrid {
-    grid-template-columns: repeat(5, 1fr);
+  .topbar {
+    align-items: flex-start;
+    gap: 10px;
+    flex-direction: column;
   }
 
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .inventory-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 </style>
 </head>
@@ -471,104 +586,60 @@ button {
 <body>
 
 <!-- =====================================================
-     AUTH PAGE
-===================================================== -->
+     LOGIN
+====================================================== -->
 
-<div id="authPage">
+<div id="loginPage" class="auth-page">
 
-  <div class="authBox">
+  <div class="auth-box">
 
     <div class="logo">
-      Hqbot
+      Hq<span>bot</span>
     </div>
 
     <div class="subtitle">
       Minecraft Bedrock Bot Dashboard
     </div>
 
-    <!-- LOGIN -->
-
-    <div id="loginForm">
+    <div class="input-group">
+      <label>Username</label>
 
       <input
         id="loginUsername"
-        class="input"
         type="text"
-        placeholder="Username"
         autocomplete="username"
+        placeholder="Enter username"
       >
+    </div>
+
+    <div class="input-group">
+      <label>Password</label>
 
       <input
         id="loginPassword"
-        class="input"
         type="password"
-        placeholder="Password"
         autocomplete="current-password"
+        placeholder="Enter password"
       >
-
-      <button
-        class="primaryBtn"
-        onclick="login()"
-      >
-        Login
-      </button>
-
-      <button
-        class="secondaryBtn"
-        onclick="showRegister()"
-      >
-        Create Account
-      </button>
-
     </div>
 
-    <!-- REGISTER -->
-
-    <div
-      id="registerForm"
-      class="hidden"
+    <button
+      class="primary-btn"
+      onclick="login()"
     >
+      Login
+    </button>
 
-      <input
-        id="registerUsername"
-        class="input"
-        type="text"
-        placeholder="Username"
-      >
-
-      <input
-        id="registerPassword"
-        class="input"
-        type="password"
-        placeholder="Password"
-      >
-
-      <input
-        id="activationKey"
-        class="input"
-        type="text"
-        placeholder="Activation Key"
-      >
-
-      <button
-        class="primaryBtn"
-        onclick="registerAccount()"
-      >
-        Create Account
-      </button>
-
-      <button
-        class="secondaryBtn"
-        onclick="showLoginForm()"
-      >
-        Back to Login
-      </button>
-
-    </div>
+    <button
+      class="secondary-btn"
+      onclick="showRegister()"
+    >
+      Create Account
+    </button>
 
     <div
-      id="authMessage"
-      class="authMessage"
+      id="loginMessage"
+      class="auth-message"
     ></div>
 
   </div>
@@ -577,334 +648,81 @@ button {
 
 
 <!-- =====================================================
-     APP PAGE
-===================================================== -->
+     REGISTER
+====================================================== -->
 
 <div
-  id="appPage"
-  class="hidden"
+  id="registerPage"
+  class="auth-page"
+  style="display:none;"
 >
 
-  <div class="topbar">
+  <div class="auth-box">
 
-    <div class="topLogo">
-      Hqbot
+    <div class="logo">
+      Hq<span>bot</span>
+    </div>
+
+    <div class="subtitle">
+      Create your Hqbot account
+    </div>
+
+    <div class="input-group">
+
+      <label>Username</label>
+
+      <input
+        id="registerUsername"
+        type="text"
+        autocomplete="username"
+        placeholder="Choose a username"
+      >
+
+    </div>
+
+    <div class="input-group">
+
+      <label>Password</label>
+
+      <input
+        id="registerPassword"
+        type="password"
+        autocomplete="new-password"
+        placeholder="Choose a password"
+      >
+
+    </div>
+
+    <div class="input-group">
+
+      <label>Activation Key</label>
+
+      <input
+        id="registerKey"
+        type="text"
+        placeholder="Enter your Hqbot key"
+      >
+
     </div>
 
     <button
-      class="logoutBtn"
-      onclick="logout()"
+      class="primary-btn"
+      onclick="registerAccount()"
     >
-      Logout
+      Create Account
     </button>
 
-  </div>
-
-  <div class="layout">
-
-    <aside class="sidebar">
-
-      <button
-        class="navBtn active"
-        onclick="openPage('dashboard', this)"
-      >
-        🏠 Dashboard
-      </button>
-
-      <button
-        class="navBtn"
-        onclick="openPage('accounts', this)"
-      >
-        👤 Accounts
-      </button>
-
-      <button
-        class="navBtn"
-        onclick="openPage('bots', this)"
-      >
-        🤖 Bots
-      </button>
-
-      <button
-        class="navBtn"
-        onclick="openPage('console', this)"
-      >
-        💻 Console
-      </button>
-
-      <button
-        class="navBtn"
-        onclick="openPage('inventory', this)"
-      >
-        🎒 Inventory
-      </button>
-
-    </aside>
-
-
-    <main class="content">
-
-      <!-- DASHBOARD -->
-
-      <section
-        id="dashboard"
-        class="page active"
-      >
-
-        <div class="pageTitle">
-          Dashboard
-        </div>
-
-        <div class="pageSubtitle">
-          Welcome to your Hqbot dashboard.
-        </div>
-
-        <div class="grid">
-
-          <div class="card">
-
-            <div class="cardTitle">
-              Username
-            </div>
-
-            <div
-              id="dashboardUsername"
-              class="cardValue"
-            >
-              Loading...
-            </div>
-
-          </div>
-
-          <div class="card">
-
-            <div class="cardTitle">
-              Plan
-            </div>
-
-            <div
-              id="dashboardPlan"
-              class="cardValue"
-            >
-              Loading...
-            </div>
-
-          </div>
-
-          <div class="card">
-
-            <div class="cardTitle">
-              Bot Status
-            </div>
-
-            <div
-              id="dashboardBotStatus"
-              class="cardValue"
-            >
-              Offline
-            </div>
-
-          </div>
-
-        </div>
-
-        <div class="durationCard">
-
-          <div class="durationTitle">
-            Hqbot Plan
-          </div>
-
-          <div
-            id="planText"
-            class="durationPlan"
-          >
-            Loading...
-          </div>
-
-          <div
-            id="durationText"
-            class="durationValue"
-          >
-            Loading duration...
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- ACCOUNTS -->
-
-      <section
-        id="accounts"
-        class="page"
-      >
-
-        <div class="pageTitle">
-          Accounts
-        </div>
-
-        <div class="pageSubtitle">
-          Connect your Microsoft account to Hqbot.
-        </div>
-
-        <div class="accountBox">
-
-          <div
-            id="accountName"
-            class="accountName"
-          >
-            No Microsoft account connected
-          </div>
-
-          <div
-            id="accountPlan"
-            class="accountPlan"
-          >
-            Add your Minecraft account below.
-          </div>
-
-          <button
-            class="primaryBtn"
-            onclick="startMicrosoftLogin()"
-          >
-            Add Account
-          </button>
-
-        </div>
-
-      </section>
-
-
-      <!-- BOTS -->
-
-      <section
-        id="bots"
-        class="page"
-      >
-
-        <div class="pageTitle">
-          Bots
-        </div>
-
-        <div class="pageSubtitle">
-          View your Hqbot connection status.
-        </div>
-
-        <div class="card">
-
-          <div class="cardTitle">
-            Current Bot
-          </div>
-
-          <div
-            id="botStatusText"
-            class="cardValue"
-          >
-            Offline
-          </div>
-
-          <div class="status">
-
-            <span
-              id="statusDot"
-              class="dot"
-            ></span>
-
-            <span id="statusDescription">
-              Bot is offline
-            </span>
-
-          </div>
-
-        </div>
-
-      </section>
-
-
-      <!-- CONSOLE -->
-
-      <section
-        id="console"
-        class="page"
-      >
-
-        <div class="pageTitle">
-          Console
-        </div>
-
-        <div class="pageSubtitle">
-          Send commands to your Minecraft bot.
-        </div>
-
-        <div
-          id="consoleOutput"
-          class="console"
-        >Hqbot console ready.</div>
-
-        <div class="commandRow">
-
-          <input
-            id="commandInput"
-            class="commandInput"
-            placeholder="Enter Minecraft command..."
-          >
-
-          <button
-            class="commandBtn"
-            onclick="sendCommand()"
-          >
-            Send
-          </button>
-
-        </div>
-
-      </section>
-
-
-      <!-- INVENTORY -->
-
-      <section
-        id="inventory"
-        class="page"
-      >
-
-        <div class="pageTitle">
-          Inventory
-        </div>
-
-        <div class="pageSubtitle">
-          Main inventory can be dropped. Hotbar is protected.
-        </div>
-
-        <button
-          class="dropBtn"
-          onclick="dropInventory()"
-        >
-          Drop Main Inventory
-        </button>
-
-        <h3 style="margin-top:25px;">
-          Main Inventory
-        </h3>
-
-        <div
-          id="mainInventory"
-          class="inventoryGrid"
-        ></div>
-
-        <h3 style="margin-top:30px;">
-          Hotbar
-        </h3>
-
-        <div
-          id="hotbar"
-          class="inventoryGrid"
-        ></div>
-
-      </section>
-
-    </main>
+    <button
+      class="secondary-btn"
+      onclick="showLoginForm()"
+    >
+      Back to Login
+    </button>
+
+    <div
+      id="registerMessage"
+      class="auth-message"
+    ></div>
 
   </div>
 
@@ -912,48 +730,603 @@ button {
 
 
 <!-- =====================================================
+     APP
+====================================================== -->
+
+<div id="app" class="app">
+
+  <aside class="sidebar">
+
+    <div class="sidebar-logo">
+      Hq<span>bot</span>
+    </div>
+
+    <button
+      id="navDashboard"
+      class="nav-btn active"
+      onclick="showPage('dashboard')"
+    >
+      🏠 Dashboard
+    </button>
+
+    <button
+      id="navAccount"
+      class="nav-btn"
+      onclick="showPage('account')"
+    >
+      👤 Account
+    </button>
+
+    <button
+      id="navBots"
+      class="nav-btn"
+      onclick="showPage('bots')"
+    >
+      🤖 Bots
+    </button>
+
+    <button
+      id="navConsole"
+      class="nav-btn"
+      onclick="showPage('console')"
+    >
+      📟 Console
+    </button>
+
+    <button
+      id="navInventory"
+      class="nav-btn"
+      onclick="showPage('inventory')"
+    >
+      🎒 Inventory
+    </button>
+
+    <button
+      class="logout-btn"
+      onclick="logout()"
+    >
+      🚪 Logout
+    </button>
+
+  </aside>
+
+
+  <main class="main">
+
+    <div class="topbar">
+
+      <div class="page-title" id="pageTitle">
+        Dashboard
+      </div>
+
+      <div
+        id="topUsername"
+        class="user-badge"
+      >
+        User
+      </div>
+
+    </div>
+
+
+    <!-- ===================================================
+         DASHBOARD
+    ==================================================== -->
+
+    <section
+      id="page-dashboard"
+      class="page active"
+    >
+
+      <!-- MAIN STATS -->
+
+      <div class="grid">
+
+        <div class="card">
+
+          <div class="card-title">
+            Username
+          </div>
+
+          <div
+            id="dashUsername"
+            class="card-value"
+          >
+            -
+          </div>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="card-title">
+            Plan
+          </div>
+
+          <div
+            id="dashPlan"
+            class="card-value green"
+          >
+            -
+          </div>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="card-title">
+            Status
+          </div>
+
+          <div
+            id="dashStatus"
+            class="card-value green"
+          >
+            -
+          </div>
+
+        </div>
+
+
+        <div class="card">
+
+          <div class="card-title">
+            Duration
+          </div>
+
+          <div
+            id="dashDuration"
+            class="card-value"
+          >
+            -
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- BOT STATUS -->
+
+      <div class="section">
+
+        <div class="section-title">
+          Bot Status
+        </div>
+
+        <div class="card bot-card">
+
+          <div
+            id="dashboardBotStatus"
+            class="bot-status"
+          >
+
+            <span class="status-dot"></span>
+
+            <span>
+              Checking...
+            </span>
+
+          </div>
+
+          <div class="bot-actions">
+
+            <button
+              onclick="showPage('bots')"
+            >
+              🤖 Manage Bot
+            </button>
+
+            <button
+              onclick="showPage('console')"
+            >
+              📟 Open Console
+            </button>
+
+            <button
+              onclick="showPage('inventory')"
+            >
+              🎒 Inventory
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ACCOUNT INFORMATION -->
+
+      <div class="section">
+
+        <div class="section-title">
+          Account Information
+        </div>
+
+        <div class="card account-card">
+
+          <div class="info-row">
+
+            <div class="info-label">
+              Username
+            </div>
+
+            <div
+              id="dashboardAccountUsername"
+              class="info-value"
+            >
+              -
+            </div>
+
+          </div>
+
+
+          <div class="info-row">
+
+            <div class="info-label">
+              Current Plan
+            </div>
+
+            <div
+              id="dashboardAccountPlan"
+              class="info-value green"
+            >
+              -
+            </div>
+
+          </div>
+
+
+          <div class="info-row">
+
+            <div class="info-label">
+              Account Status
+            </div>
+
+            <div
+              id="dashboardAccountStatus"
+              class="info-value"
+            >
+              -
+            </div>
+
+          </div>
+
+
+          <div class="info-row">
+
+            <div class="info-label">
+              Remaining Duration
+            </div>
+
+            <div
+              id="dashboardAccountDuration"
+              class="info-value"
+            >
+              -
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         ACCOUNT
+    ==================================================== -->
+
+    <section
+      id="page-account"
+      class="page"
+    >
+
+      <div class="card account-card">
+
+        <div class="section-title">
+          Account
+        </div>
+
+        <div class="info-row">
+
+          <div class="info-label">
+            Username
+          </div>
+
+          <div
+            id="accountUsername"
+            class="info-value"
+          >
+            -
+          </div>
+
+        </div>
+
+        <div class="info-row">
+
+          <div class="info-label">
+            Plan
+          </div>
+
+          <div
+            id="accountPlan"
+            class="info-value green"
+          >
+            -
+          </div>
+
+        </div>
+
+        <div class="info-row">
+
+          <div class="info-label">
+            Status
+          </div>
+
+          <div
+            id="accountStatus"
+            class="info-value"
+          >
+            -
+          </div>
+
+        </div>
+
+        <div class="info-row">
+
+          <div class="info-label">
+            Duration
+          </div>
+
+          <div
+            id="accountDuration"
+            class="info-value"
+          >
+            -
+          </div>
+
+        </div>
+
+        <div class="info-row">
+
+          <div class="info-label">
+            Expiration
+          </div>
+
+          <div
+            id="accountExpiration"
+            class="info-value"
+          >
+            -
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         BOTS
+    ==================================================== -->
+
+    <section
+      id="page-bots"
+      class="page"
+    >
+
+      <div class="card bot-card">
+
+        <div class="section-title">
+          Hqbot
+        </div>
+
+        <div
+          id="botStatusBadge"
+          class="bot-status"
+        >
+
+          <span class="status-dot"></span>
+
+          <span>
+            Checking...
+          </span>
+
+        </div>
+
+
+        <div class="info-row">
+
+          <div class="info-label">
+            Bot
+          </div>
+
+          <div
+            id="botName"
+            class="info-value"
+          >
+            Not connected
+          </div>
+
+        </div>
+
+
+        <div class="info-row">
+
+          <div class="info-label">
+            Server
+          </div>
+
+          <div
+            id="botServer"
+            class="info-value"
+          >
+            -
+          </div>
+
+        </div>
+
+
+        <div
+          class="section"
+          style="margin-top:20px;"
+        >
+
+          <div class="section-title">
+            Microsoft / Xbox Account
+          </div>
+
+          <button
+            class="primary-btn"
+            onclick="startMicrosoftLogin()"
+          >
+            🎮 Add Microsoft Account
+          </button>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         CONSOLE
+    ==================================================== -->
+
+    <section
+      id="page-console"
+      class="page"
+    >
+
+      <div
+        id="consoleOutput"
+        class="console-box"
+      >
+
+        <div class="console-line success">
+          Hqbot console ready.
+        </div>
+
+        <div class="console-line">
+          Waiting for bot connection...
+        </div>
+
+      </div>
+
+
+      <div class="console-input-row">
+
+        <input
+          id="commandInput"
+          type="text"
+          placeholder="Enter bot command..."
+          onkeydown="handleCommandKey(event)"
+        >
+
+        <button
+          onclick="sendCommand()"
+        >
+          Send
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         INVENTORY
+    ==================================================== -->
+
+    <section
+      id="page-inventory"
+      class="page"
+    >
+
+      <div class="card">
+
+        <div class="section-title">
+          Bot Inventory
+        </div>
+
+        <div
+          id="inventoryMessage"
+          style="color:#89958f;margin-bottom:10px;"
+        >
+          Loading inventory...
+        </div>
+
+        <div
+          id="inventoryGrid"
+          class="inventory-grid"
+        ></div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+
+<!-- =====================================================
      MICROSOFT MODAL
-===================================================== -->
+====================================================== -->
 
 <div
   id="microsoftModal"
-  class="modal hidden"
+  class="modal"
 >
 
-  <div class="modalBox">
+  <div class="modal-box">
 
-    <div class="modalTitle">
+    <div class="modal-title">
       Microsoft Sign In
     </div>
 
     <div
-      id="microsoftMessage"
-      class="modalText"
+      id="microsoftText"
+      class="modal-text"
     >
-      Starting Microsoft login...
+      Loading Microsoft sign-in...
     </div>
 
     <div
       id="microsoftCode"
-      class="code"
+      class="code-box"
+      style="display:none;"
     >
-      Waiting...
+      ----
     </div>
 
-    <button
-      id="openMicrosoftButton"
-      class="modalBtn microsoftBtn hidden"
-      onclick="openMicrosoftLoginPage()"
-    >
-      Open Microsoft Login
-    </button>
+    <div class="modal-actions">
 
-    <button
-      class="modalBtn closeBtn"
-      onclick="closeMicrosoftModal()"
-    >
-      Close
-    </button>
+      <button
+        id="openMicrosoftButton"
+        class="open-ms-btn"
+        style="display:none;"
+        onclick="openMicrosoftPage()"
+      >
+        Open Microsoft
+      </button>
+
+      <button
+        class="close-modal-btn"
+        onclick="closeMicrosoftModal()"
+      >
+        Close
+      </button>
+
+    </div>
 
   </div>
 
@@ -962,40 +1335,56 @@ button {
 
 <script>
 
-/* =====================================================
+/* =========================================================
    API
-===================================================== */
+========================================================= */
 
 const HQBOT_API =
   "https://hqbot-production-b81b.up.railway.app";
 
+
+/* =========================================================
+   STATE
+========================================================= */
+
 let authToken =
-  sessionStorage.getItem("hqbot_token");
+  sessionStorage.getItem(
+    "hqbot_token"
+  ) || null;
 
 let currentUser = null;
 
 let microsoftSessionId = null;
 
-let microsoftPoller = null;
+let microsoftVerificationUri = null;
 
-let durationTimer = null;
+let microsoftPollTimer = null;
+
+let botStatusTimer = null;
 
 
-/* =====================================================
+/* =========================================================
    API HELPER
-===================================================== */
+========================================================= */
 
-async function api(endpoint, options = {}) {
+async function api(
+  endpoint,
+  options = {}
+) {
 
   options.headers =
     options.headers || {};
 
-  options.headers["Content-Type"] =
+  options.headers[
+    "Content-Type"
+  ] =
     "application/json";
 
   if (authToken) {
 
-    options.headers["Authorization"] =
+    options.headers[
+      "Authorization"
+    ] =
       "Bearer " + authToken;
 
   }
@@ -1010,10 +1399,10 @@ async function api(endpoint, options = {}) {
         options
       );
 
-  } catch (networkError) {
+  } catch (error) {
 
     throw new Error(
-      "Failed to connect to Hqbot. Check that the Railway server is online and Preview allows external connections."
+      "Failed to connect to Hqbot. Check that the Railway server is online."
     );
 
   }
@@ -1046,26 +1435,30 @@ async function api(endpoint, options = {}) {
 }
 
 
-/* =====================================================
+/* =========================================================
    LOGIN
-===================================================== */
+========================================================= */
 
 async function login() {
 
   const username =
     document
-      .getElementById("loginUsername")
+      .getElementById(
+        "loginUsername"
+      )
       .value
       .trim();
 
   const password =
     document
-      .getElementById("loginPassword")
+      .getElementById(
+        "loginPassword"
+      )
       .value;
 
   const message =
     document.getElementById(
-      "authMessage"
+      "loginMessage"
     );
 
   if (!username || !password) {
@@ -1076,6 +1469,9 @@ async function login() {
     return;
 
   }
+
+  message.style.color =
+    "#55e38a";
 
   message.textContent =
     "Logging in...";
@@ -1090,8 +1486,11 @@ async function login() {
 
           body:
             JSON.stringify({
-              username: username,
-              password: password
+              username:
+                username,
+
+              password:
+                password
             })
         }
       );
@@ -1112,11 +1511,14 @@ async function login() {
       authToken
     );
 
-    message.textContent = "";
+    message.textContent =
+      "";
 
     await loadCurrentUser();
 
     showApp();
+
+    startBotPolling();
 
   } catch (error) {
 
@@ -1124,6 +1526,9 @@ async function login() {
       "LOGIN ERROR:",
       error
     );
+
+    message.style.color =
+      "#ff7777";
 
     message.textContent =
       "Login Error: " +
@@ -1137,32 +1542,38 @@ async function login() {
 }
 
 
-/* =====================================================
+/* =========================================================
    REGISTER
-===================================================== */
+========================================================= */
 
 async function registerAccount() {
 
   const username =
     document
-      .getElementById("registerUsername")
+      .getElementById(
+        "registerUsername"
+      )
       .value
       .trim();
 
   const password =
     document
-      .getElementById("registerPassword")
+      .getElementById(
+        "registerPassword"
+      )
       .value;
 
   const activationKey =
     document
-      .getElementById("activationKey")
+      .getElementById(
+        "registerKey"
+      )
       .value
       .trim();
 
   const message =
     document.getElementById(
-      "authMessage"
+      "registerMessage"
     );
 
   if (
@@ -1171,12 +1582,18 @@ async function registerAccount() {
     !activationKey
   ) {
 
+    message.style.color =
+      "#ff7777";
+
     message.textContent =
       "Fill in all fields.";
 
     return;
 
   }
+
+  message.style.color =
+    "#55e38a";
 
   message.textContent =
     "Creating account...";
@@ -1191,34 +1608,50 @@ async function registerAccount() {
 
           body:
             JSON.stringify({
-              username: username,
-              password: password,
-              activationKey: activationKey
+              username:
+                username,
+
+              password:
+                password,
+
+              activationKey:
+                activationKey
             })
         }
       );
 
-    if (!data.token) {
+    message.style.color =
+      "#55e38a";
 
-      throw new Error(
-        "Account created but the server did not return a token."
-      );
+    message.textContent =
+      data.message ||
+      "Account created successfully!";
 
-    }
+    document.getElementById(
+      "registerPassword"
+    ).value = "";
 
-    authToken =
-      data.token;
+    document.getElementById(
+      "registerKey"
+    ).value = "";
 
-    sessionStorage.setItem(
-      "hqbot_token",
-      authToken
+    setTimeout(
+      () => {
+
+        showLoginForm();
+
+        document.getElementById(
+          "loginUsername"
+        ).value =
+          username;
+
+        document.getElementById(
+          "loginPassword"
+        ).focus();
+
+      },
+      1000
     );
-
-    message.textContent = "";
-
-    await loadCurrentUser();
-
-    showApp();
 
   } catch (error) {
 
@@ -1227,8 +1660,11 @@ async function registerAccount() {
       error
     );
 
+    message.style.color =
+      "#ff7777";
+
     message.textContent =
-      "Registration Error: " +
+      "Register Error: " +
       (
         error.message ||
         "Unknown error"
@@ -1239,9 +1675,92 @@ async function registerAccount() {
 }
 
 
-/* =====================================================
-   CURRENT USER
-===================================================== */
+/* =========================================================
+   AUTH SCREENS
+========================================================= */
+
+function showRegister() {
+
+  document.getElementById(
+    "loginPage"
+  ).style.display =
+    "none";
+
+  document.getElementById(
+    "registerPage"
+  ).style.display =
+    "flex";
+
+  document.getElementById(
+    "registerMessage"
+  ).textContent =
+    "";
+
+}
+
+
+function showLoginForm() {
+
+  document.getElementById(
+    "registerPage"
+  ).style.display =
+    "none";
+
+  document.getElementById(
+    "loginPage"
+  ).style.display =
+    "flex";
+
+  document.getElementById(
+    "registerMessage"
+  ).textContent =
+    "";
+
+}
+
+
+/* =========================================================
+   APP
+========================================================= */
+
+function showApp() {
+
+  document.getElementById(
+    "loginPage"
+  ).style.display =
+    "none";
+
+  document.getElementById(
+    "registerPage"
+  ).style.display =
+    "none";
+
+  document.getElementById(
+    "app"
+  ).style.display =
+    "block";
+
+}
+
+
+function hideApp() {
+
+  document.getElementById(
+    "app"
+  ).style.display =
+    "none";
+
+  document.getElementById(
+    "loginPage"
+  ).style.display =
+    "flex";
+
+}
+
+
+/* =========================================================
+   USER
+========================================================= */
 
 async function loadCurrentUser() {
 
@@ -1251,53 +1770,61 @@ async function loadCurrentUser() {
     );
 
   currentUser =
+    data.user ||
     data;
 
-  document.getElementById(
-    "dashboardUsername"
-  ).textContent =
-    data.username || "Unknown";
+  updateUserUI();
 
-  document.getElementById(
-    "dashboardPlan"
-  ).textContent =
-    formatPlan(data.plan);
-
-  document.getElementById(
-    "accountName"
-  ).textContent =
-    data.username || "Account";
-
-  document.getElementById(
-    "accountPlan"
-  ).textContent =
-    formatPlan(data.plan);
-
-  updateDuration();
+  await loadPlan();
 
 }
 
 
-/* =====================================================
+function updateUserUI() {
+
+  if (!currentUser) {
+    return;
+  }
+
+  const username =
+    currentUser.username ||
+    "-";
+
+  document.getElementById(
+    "topUsername"
+  ).textContent =
+    username;
+
+  document.getElementById(
+    "dashUsername"
+  ).textContent =
+    username;
+
+  document.getElementById(
+    "accountUsername"
+  ).textContent =
+    username;
+
+  const dashboardUsername =
+    document.getElementById(
+      "dashboardAccountUsername"
+    );
+
+  if (dashboardUsername) {
+
+    dashboardUsername.textContent =
+      username;
+
+  }
+
+}
+
+
+/* =========================================================
    PLAN
-===================================================== */
+========================================================= */
 
-function formatPlan(plan) {
-
-  if (plan === "lifetime") {
-    return "Lifetime";
-  }
-
-  if (plan === "monthly") {
-    return "Monthly";
-  }
-
-  return plan || "Unknown";
-
-}
-
-
-async function updateDuration() {
+async function loadPlan() {
 
   try {
 
@@ -1306,116 +1833,151 @@ async function updateDuration() {
         "/api/plan"
       );
 
-    document.getElementById(
-      "planText"
-    ).textContent =
-      formatPlan(data.plan);
+    const plan =
+      data.plan ||
+      currentUser?.plan ||
+      "-";
 
-    if (durationTimer) {
+    let status =
+      data.status ||
+      "active";
 
-      clearInterval(
-        durationTimer
-      );
-
-      durationTimer = null;
-
-    }
+    let duration =
+      "-";
 
     if (
-      data.plan ===
-      "lifetime"
+      typeof data.remainingDays ===
+      "number"
     ) {
 
-      document.getElementById(
-        "durationText"
-      ).textContent =
-        "Never expires";
+      if (
+        data.remainingDays <= 0
+      ) {
 
-      return;
-
-    }
-
-    if (
-      data.expired ||
-      !data.expiresAt
-    ) {
-
-      document.getElementById(
-        "durationText"
-      ).textContent =
-        "Expired";
-
-      return;
-
-    }
-
-    const expiresAt =
-      Number(
-        data.expiresAt
-      );
-
-    function tickDuration() {
-
-      const remaining =
-        expiresAt -
-        Date.now();
-
-      if (remaining <= 0) {
-
-        document.getElementById(
-          "durationText"
-        ).textContent =
+        duration =
           "Expired";
 
-        clearInterval(
-          durationTimer
-        );
+      } else {
 
-        return;
+        duration =
+          data.remainingDays +
+          " day" +
+          (
+            data.remainingDays === 1
+              ? ""
+              : "s"
+          );
 
       }
 
-      const days =
-        Math.floor(
-          remaining /
-          (24 * 60 * 60 * 1000)
+    } else if (
+      data.remainingMs != null
+    ) {
+
+      duration =
+        formatDuration(
+          data.remainingMs
         );
 
-      const hours =
-        Math.floor(
-          (remaining %
-            (24 * 60 * 60 * 1000)) /
-          (60 * 60 * 1000)
-        );
+    } else if (
+      plan === "lifetime"
+    ) {
 
-      const minutes =
-        Math.floor(
-          (remaining %
-            (60 * 60 * 1000)) /
-          (60 * 1000)
-        );
-
-      const seconds =
-        Math.floor(
-          (remaining %
-            (60 * 1000)) /
-          1000
-        );
-
-      document.getElementById(
-        "durationText"
-      ).textContent =
-        `${days}d ${hours}h ${minutes}m ${seconds}s`;
+      duration =
+        "Lifetime";
 
     }
 
-    tickDuration();
+    if (
+      data.active === false ||
+      status === "expired"
+    ) {
 
-    durationTimer =
-      setInterval(
-        tickDuration,
-        1000
+      status =
+        "Expired";
+
+    }
+
+    /* MAIN DASHBOARD */
+
+    document.getElementById(
+      "dashPlan"
+    ).textContent =
+      capitalize(plan);
+
+    document.getElementById(
+      "dashStatus"
+    ).textContent =
+      capitalize(status);
+
+    document.getElementById(
+      "dashDuration"
+    ).textContent =
+      duration;
+
+
+    /* ACCOUNT PAGE */
+
+    document.getElementById(
+      "accountPlan"
+    ).textContent =
+      capitalize(plan);
+
+    document.getElementById(
+      "accountStatus"
+    ).textContent =
+      capitalize(status);
+
+    document.getElementById(
+      "accountDuration"
+    ).textContent =
+      duration;
+
+    document.getElementById(
+      "accountExpiration"
+    ).textContent =
+      formatExpiration(
+        data.expiresAt
       );
+
+
+    /* DASHBOARD ACCOUNT INFO */
+
+    const dashboardPlan =
+      document.getElementById(
+        "dashboardAccountPlan"
+      );
+
+    const dashboardStatus =
+      document.getElementById(
+        "dashboardAccountStatus"
+      );
+
+    const dashboardDuration =
+      document.getElementById(
+        "dashboardAccountDuration"
+      );
+
+    if (dashboardPlan) {
+
+      dashboardPlan.textContent =
+        capitalize(plan);
+
+    }
+
+    if (dashboardStatus) {
+
+      dashboardStatus.textContent =
+        capitalize(status);
+
+    }
+
+    if (dashboardDuration) {
+
+      dashboardDuration.textContent =
+        duration;
+
+    }
 
   } catch (error) {
 
@@ -1424,19 +1986,1023 @@ async function updateDuration() {
       error
     );
 
+    const fallbackPlan =
+      currentUser?.plan ||
+      "-";
+
     document.getElementById(
-      "durationText"
+      "dashPlan"
     ).textContent =
-      "Unable to load duration.";
+      capitalize(
+        fallbackPlan
+      );
+
+    document.getElementById(
+      "accountPlan"
+    ).textContent =
+      capitalize(
+        fallbackPlan
+      );
 
   }
 
 }
 
 
-/* =====================================================
+/* =========================================================
+   FORMAT
+========================================================= */
+
+function capitalize(
+  value
+) {
+
+  if (!value) {
+    return "-";
+  }
+
+  const text =
+    String(value);
+
+  return (
+    text.charAt(0).toUpperCase() +
+    text.slice(1)
+  );
+
+}
+
+
+function formatDuration(
+  ms
+) {
+
+  if (!ms || ms <= 0) {
+
+    return "Expired";
+
+  }
+
+  const totalSeconds =
+    Math.floor(
+      ms / 1000
+    );
+
+  const days =
+    Math.floor(
+      totalSeconds /
+      86400
+    );
+
+  const hours =
+    Math.floor(
+      (
+        totalSeconds %
+        86400
+      ) / 3600
+    );
+
+  const minutes =
+    Math.floor(
+      (
+        totalSeconds %
+        3600
+      ) / 60
+    );
+
+  if (days > 0) {
+
+    return (
+      days +
+      "d " +
+      hours +
+      "h"
+    );
+
+  }
+
+  if (hours > 0) {
+
+    return (
+      hours +
+      "h " +
+      minutes +
+      "m"
+    );
+
+  }
+
+  return (
+    minutes +
+    "m"
+  );
+
+}
+
+
+function formatExpiration(
+  value
+) {
+
+  if (!value) {
+
+    return "Never";
+
+  }
+
+  try {
+
+    const date =
+      new Date(value);
+
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+
+      return String(value);
+
+    }
+
+    return date.toLocaleString();
+
+  } catch {
+
+    return String(value);
+
+  }
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function showPage(
+  page
+) {
+
+  document
+    .querySelectorAll(
+      ".page"
+    )
+    .forEach(
+      element => {
+
+        element.classList.remove(
+          "active"
+        );
+
+      }
+    );
+
+  document
+    .querySelectorAll(
+      ".nav-btn"
+    )
+    .forEach(
+      element => {
+
+        element.classList.remove(
+          "active"
+        );
+
+      }
+    );
+
+  const target =
+    document.getElementById(
+      "page-" + page
+    );
+
+  if (target) {
+
+    target.classList.add(
+      "active"
+    );
+
+  }
+
+  const nav =
+    document.getElementById(
+      "nav" +
+      page.charAt(0).toUpperCase() +
+      page.slice(1)
+    );
+
+  if (nav) {
+
+    nav.classList.add(
+      "active"
+    );
+
+  }
+
+  const titles = {
+
+    dashboard:
+      "Dashboard",
+
+    account:
+      "Account",
+
+    bots:
+      "Bots",
+
+    console:
+      "Console",
+
+    inventory:
+      "Inventory"
+
+  };
+
+  document.getElementById(
+    "pageTitle"
+  ).textContent =
+    titles[page] ||
+    "Hqbot";
+
+  if (
+    page === "inventory"
+  ) {
+
+    loadInventory();
+
+  }
+
+  if (
+    page === "bots"
+  ) {
+
+    loadBotStatus();
+
+  }
+
+}
+
+
+/* =========================================================
+   BOT STATUS
+========================================================= */
+
+async function loadBotStatus() {
+
+  try {
+
+    const data =
+      await api(
+        "/api/bot/status"
+      );
+
+    const connected =
+      data.connected === true ||
+      data.online === true ||
+      data.status === "online";
+
+    setBotStatus(
+      connected,
+      connected
+        ? "Online"
+        : "Offline"
+    );
+
+    document.getElementById(
+      "botName"
+    ).textContent =
+      data.username ||
+      data.name ||
+      data.botName ||
+      (
+        connected
+          ? "Connected"
+          : "Not connected"
+      );
+
+    document.getElementById(
+      "botServer"
+    ).textContent =
+      data.server ||
+      data.host ||
+      "-";
+
+  } catch (error) {
+
+    console.error(
+      "BOT STATUS ERROR:",
+      error
+    );
+
+    setBotStatus(
+      false,
+      "Offline"
+    );
+
+  }
+
+}
+
+
+function setBotStatus(
+  connected,
+  text
+) {
+
+  const elements = [
+
+    document.getElementById(
+      "botStatusBadge"
+    ),
+
+    document.getElementById(
+      "dashboardBotStatus"
+    )
+
+  ];
+
+  elements.forEach(
+    element => {
+
+      if (!element) {
+        return;
+      }
+
+      const dot =
+        element.querySelector(
+          ".status-dot"
+        );
+
+      const label =
+        element.querySelector(
+          "span:last-child"
+        );
+
+      if (connected) {
+
+        dot.classList.add(
+          "online"
+        );
+
+        dot.classList.remove(
+          "offline"
+        );
+
+      } else {
+
+        dot.classList.add(
+          "offline"
+        );
+
+        dot.classList.remove(
+          "online"
+        );
+
+      }
+
+      if (label) {
+
+        label.textContent =
+          text;
+
+      }
+
+    }
+  );
+
+}
+
+
+function startBotPolling() {
+
+  if (botStatusTimer) {
+
+    clearInterval(
+      botStatusTimer
+    );
+
+  }
+
+  loadBotStatus();
+
+  botStatusTimer =
+    setInterval(
+      loadBotStatus,
+      5000
+    );
+
+}
+
+
+/* =========================================================
+   MICROSOFT
+========================================================= */
+
+async function startMicrosoftLogin() {
+
+  const modal =
+    document.getElementById(
+      "microsoftModal"
+    );
+
+  const text =
+    document.getElementById(
+      "microsoftText"
+    );
+
+  const code =
+    document.getElementById(
+      "microsoftCode"
+    );
+
+  const openButton =
+    document.getElementById(
+      "openMicrosoftButton"
+    );
+
+  microsoftSessionId =
+    null;
+
+  microsoftVerificationUri =
+    null;
+
+  code.style.display =
+    "none";
+
+  openButton.style.display =
+    "none";
+
+  text.textContent =
+    "Starting Microsoft sign-in...";
+
+  modal.classList.add(
+    "show"
+  );
+
+  try {
+
+    const data =
+      await api(
+        "/api/microsoft/login",
+        {
+          method: "POST"
+        }
+      );
+
+    microsoftSessionId =
+      data.sessionId ||
+      data.id;
+
+    if (!microsoftSessionId) {
+
+      throw new Error(
+        "The server did not return a Microsoft login session."
+      );
+
+    }
+
+    const userCode =
+      data.user_code ||
+      data.userCode ||
+      data.code;
+
+    microsoftVerificationUri =
+      data.verification_uri ||
+      data.verificationUri ||
+      data.url;
+
+    if (userCode) {
+
+      code.textContent =
+        userCode;
+
+      code.style.display =
+        "block";
+
+    }
+
+    text.textContent =
+      data.message ||
+      "Open Microsoft and enter the code shown above.";
+
+    if (
+      microsoftVerificationUri
+    ) {
+
+      openButton.style.display =
+        "block";
+
+    }
+
+    startMicrosoftPolling();
+
+  } catch (error) {
+
+    console.error(
+      "MICROSOFT LOGIN ERROR:",
+      error
+    );
+
+    text.textContent =
+      "Microsoft login error: " +
+      (
+        error.message ||
+        "Unknown error"
+      );
+
+  }
+
+}
+
+
+function openMicrosoftPage() {
+
+  if (
+    microsoftVerificationUri
+  ) {
+
+    window.open(
+      microsoftVerificationUri,
+      "_blank"
+    );
+
+  }
+
+}
+
+
+function startMicrosoftPolling() {
+
+  if (microsoftPollTimer) {
+
+    clearInterval(
+      microsoftPollTimer
+    );
+
+  }
+
+  microsoftPollTimer =
+    setInterval(
+      checkMicrosoftLogin,
+      3000
+    );
+
+}
+
+
+async function checkMicrosoftLogin() {
+
+  if (!microsoftSessionId) {
+
+    return;
+
+  }
+
+  try {
+
+    const data =
+      await api(
+        "/api/microsoft/login/" +
+        encodeURIComponent(
+          microsoftSessionId
+        )
+      );
+
+    const text =
+      document.getElementById(
+        "microsoftText"
+      );
+
+    if (
+      data.status === "success" ||
+      data.status === "connected" ||
+      data.connected === true
+    ) {
+
+      clearInterval(
+        microsoftPollTimer
+      );
+
+      text.textContent =
+        "Microsoft account connected successfully! Starting bot...";
+
+      setTimeout(
+        () => {
+
+          closeMicrosoftModal();
+
+          loadBotStatus();
+
+        },
+        1500
+      );
+
+      return;
+
+    }
+
+    if (
+      data.status === "error" ||
+      data.error
+    ) {
+
+      clearInterval(
+        microsoftPollTimer
+      );
+
+      text.textContent =
+        "Microsoft login error: " +
+        (
+          data.error ||
+          "Unknown error"
+        );
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "MICROSOFT POLL ERROR:",
+      error
+    );
+
+  }
+
+}
+
+
+function closeMicrosoftModal() {
+
+  document
+    .getElementById(
+      "microsoftModal"
+    )
+    .classList.remove(
+      "show"
+    );
+
+  if (microsoftPollTimer) {
+
+    clearInterval(
+      microsoftPollTimer
+    );
+
+    microsoftPollTimer =
+      null;
+
+  }
+
+}
+
+
+/* =========================================================
+   CONSOLE
+========================================================= */
+
+function addConsoleLine(
+  text,
+  type = ""
+) {
+
+  const output =
+    document.getElementById(
+      "consoleOutput"
+    );
+
+  const line =
+    document.createElement(
+      "div"
+    );
+
+  line.className =
+    "console-line " +
+    type;
+
+  line.textContent =
+    "[" +
+    new Date().toLocaleTimeString() +
+    "] " +
+    text;
+
+  output.appendChild(
+    line
+  );
+
+  output.scrollTop =
+    output.scrollHeight;
+
+}
+
+
+function handleCommandKey(
+  event
+) {
+
+  if (
+    event.key === "Enter"
+  ) {
+
+    sendCommand();
+
+  }
+
+}
+
+
+async function sendCommand() {
+
+  const input =
+    document.getElementById(
+      "commandInput"
+    );
+
+  const command =
+    input.value.trim();
+
+  if (!command) {
+
+    return;
+
+  }
+
+  addConsoleLine(
+    "> " + command
+  );
+
+  input.value =
+    "";
+
+  try {
+
+    const data =
+      await api(
+        "/api/bot/command",
+        {
+          method: "POST",
+
+          body:
+            JSON.stringify({
+              command:
+                command
+            })
+        }
+      );
+
+    addConsoleLine(
+      data.message ||
+      data.output ||
+      data.result ||
+      "Command sent.",
+      "success"
+    );
+
+  } catch (error) {
+
+    addConsoleLine(
+      error.message ||
+      "Command failed.",
+      "error"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   INVENTORY
+========================================================= */
+
+async function loadInventory() {
+
+  const grid =
+    document.getElementById(
+      "inventoryGrid"
+    );
+
+  const message =
+    document.getElementById(
+      "inventoryMessage"
+    );
+
+  message.textContent =
+    "Loading inventory...";
+
+  grid.innerHTML =
+    "";
+
+  try {
+
+    const data =
+      await api(
+        "/api/bot/inventory"
+      );
+
+    let inventory =
+      data.inventory ||
+      data.items ||
+      data;
+
+    if (
+      !Array.isArray(
+        inventory
+      )
+    ) {
+
+      inventory =
+        [];
+
+    }
+
+    for (
+      let i = 0;
+      i < 36;
+      i++
+    ) {
+
+      const item =
+        inventory[i] ||
+        {};
+
+      const slot =
+        document.createElement(
+          "div"
+        );
+
+      slot.className =
+        "inventory-slot" +
+        (
+          i < 9
+            ? " hotbar"
+            : ""
+        );
+
+      const name =
+        item.name ||
+        item.displayName ||
+        item.item ||
+        "Empty";
+
+      const count =
+        item.count ??
+        item.amount ??
+        0;
+
+      slot.innerHTML = `
+
+        <div class="slot-number">
+          Slot ${i}
+        </div>
+
+        <div class="slot-name">
+          ${escapeHtml(
+            String(name)
+          )}
+        </div>
+
+        ${
+          count > 0
+            ? `
+              <div class="slot-count">
+                x${escapeHtml(
+                  String(count)
+                )}
+              </div>
+            `
+            : ""
+        }
+
+        ${
+          i >= 9 && count > 0
+            ? `
+              <button
+                class="drop-btn"
+                onclick="dropInventoryItem(${i})"
+              >
+                Drop
+              </button>
+            `
+            : ""
+        }
+
+      `;
+
+      grid.appendChild(
+        slot
+      );
+
+    }
+
+    message.textContent =
+      "Hotbar slots 0-8 are protected. Main inventory slots can be dropped.";
+
+  } catch (error) {
+
+    console.error(
+      "INVENTORY ERROR:",
+      error
+    );
+
+    message.textContent =
+      "Inventory Error: " +
+      (
+        error.message ||
+        "Unable to load inventory."
+      );
+
+  }
+
+}
+
+
+async function dropInventoryItem(
+  slot
+) {
+
+  if (
+    slot < 9
+  ) {
+
+    alert(
+      "Hotbar slots cannot be dropped."
+    );
+
+    return;
+
+  }
+
+  try {
+
+    const data =
+      await api(
+        "/api/bot/inventory/drop",
+        {
+          method: "POST",
+
+          body:
+            JSON.stringify({
+              slot:
+                slot
+            })
+        }
+      );
+
+    addConsoleLine(
+      data.message ||
+      `Dropped item from slot ${slot}.`,
+      "success"
+    );
+
+    await loadInventory();
+
+  } catch (error) {
+
+    alert(
+      error.message ||
+      "Could not drop item."
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
+
+function escapeHtml(
+  value
+) {
+
+  return value
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
+
+
+/* =========================================================
    LOGOUT
-===================================================== */
+========================================================= */
 
 async function logout() {
 
@@ -1462,748 +3028,39 @@ async function logout() {
 
   }
 
-  authToken = null;
+  authToken =
+    null;
 
-  currentUser = null;
+  currentUser =
+    null;
 
   sessionStorage.removeItem(
     "hqbot_token"
   );
 
-  showLogin();
-
-}
-
-
-/* =====================================================
-   MICROSOFT LOGIN
-===================================================== */
-
-async function startMicrosoftLogin() {
-
-  const modal =
-    document.getElementById(
-      "microsoftModal"
-    );
-
-  const message =
-    document.getElementById(
-      "microsoftMessage"
-    );
-
-  const code =
-    document.getElementById(
-      "microsoftCode"
-    );
-
-  const openButton =
-    document.getElementById(
-      "openMicrosoftButton"
-    );
-
-  modal.classList.remove(
-    "hidden"
-  );
-
-  message.textContent =
-    "Starting Microsoft login...";
-
-  code.textContent =
-    "Waiting...";
-
-  openButton.classList.add(
-    "hidden"
-  );
-
-  try {
-
-    const data =
-      await api(
-        "/api/microsoft/login",
-        {
-          method: "POST"
-        }
-      );
-
-    microsoftSessionId =
-      data.sessionId;
-
-    message.textContent =
-      "Waiting for Microsoft device code...";
-
-    startMicrosoftPolling();
-
-  } catch (error) {
-
-    message.textContent =
-      "Microsoft Login Error: " +
-      (
-        error.message ||
-        "Unknown error"
-      );
-
-  }
-
-}
-
-
-/* =====================================================
-   MICROSOFT POLLING
-===================================================== */
-
-function startMicrosoftPolling() {
-
-  stopMicrosoftPolling();
-
-  microsoftPoller =
-    setInterval(
-      pollMicrosoftLogin,
-      1500
-    );
-
-  pollMicrosoftLogin();
-
-}
-
-
-async function pollMicrosoftLogin() {
-
-  if (!microsoftSessionId) {
-    return;
-  }
-
-  try {
-
-    const data =
-      await api(
-        "/api/microsoft/login/" +
-        encodeURIComponent(
-          microsoftSessionId
-        )
-      );
-
-    const message =
-      document.getElementById(
-        "microsoftMessage"
-      );
-
-    const code =
-      document.getElementById(
-        "microsoftCode"
-      );
-
-    const openButton =
-      document.getElementById(
-        "openMicrosoftButton"
-      );
-
-    if (data.code) {
-
-      code.textContent =
-        data.code;
-
-    }
-
-    if (data.verificationUri) {
-
-      openButton.classList.remove(
-        "hidden"
-      );
-
-      openButton.dataset.url =
-        data.verificationUri;
-
-    }
-
-    if (
-      data.status ===
-      "waiting_for_login"
-    ) {
-
-      message.textContent =
-        "Enter the code on Microsoft's official sign-in page.";
-
-    }
-
-    if (
-      data.status ===
-      "microsoft_connected"
-    ) {
-
-      message.textContent =
-        "Microsoft account connected. Connecting to Lifeboat...";
-
-    }
-
-    if (
-      data.status ===
-      "connected"
-    ) {
-
-      message.textContent =
-        "Bot connected.";
-
-    }
-
-    if (
-      data.status ===
-      "error"
-    ) {
-
-      message.textContent =
-        "Microsoft Login Error: " +
-        (
-          data.error ||
-          "Unknown error"
-        );
-
-      stopMicrosoftPolling();
-
-    }
-
-    if (
-      data.botStatus ===
-      "error"
-    ) {
-
-      message.textContent =
-        "Bot Connection Error: " +
-        (
-          data.error ||
-          "Unknown error"
-        );
-
-      stopMicrosoftPolling();
-
-    }
-
-    if (
-      data.botStatus ===
-      "online"
-    ) {
-
-      message.textContent =
-        "Hqbot is online!";
-
-      stopMicrosoftPolling();
-
-      updateBotStatus();
-
-      setTimeout(
-        closeMicrosoftModal,
-        1500
-      );
-
-    }
-
-  } catch (error) {
-
-    console.error(
-      "MICROSOFT POLLING ERROR:",
-      error
-    );
-
-  }
-
-}
-
-
-function openMicrosoftLoginPage() {
-
-  const button =
-    document.getElementById(
-      "openMicrosoftButton"
-    );
-
-  const url =
-    button.dataset.url;
-
-  if (url) {
-
-    window.open(
-      url,
-      "_blank"
-    );
-
-  }
-
-}
-
-
-function stopMicrosoftPolling() {
-
-  if (microsoftPoller) {
+  if (botStatusTimer) {
 
     clearInterval(
-      microsoftPoller
+      botStatusTimer
     );
 
-    microsoftPoller = null;
+    botStatusTimer =
+      null;
 
   }
 
-}
-
-
-function closeMicrosoftModal() {
-
-  stopMicrosoftPolling();
-
-  document
-    .getElementById(
-      "microsoftModal"
-    )
-    .classList.add(
-      "hidden"
-    );
+  hideApp();
 
 }
 
 
-/* =====================================================
-   BOT STATUS
-===================================================== */
-
-async function updateBotStatus() {
-
-  if (!authToken) {
-    return;
-  }
-
-  try {
-
-    const data =
-      await api(
-        "/api/bot/status"
-      );
-
-    const online =
-      data.online === true;
-
-    document.getElementById(
-      "dashboardBotStatus"
-    ).textContent =
-      online
-        ? "Online"
-        : "Offline";
-
-    document.getElementById(
-      "botStatusText"
-    ).textContent =
-      online
-        ? "Online"
-        : "Offline";
-
-    document.getElementById(
-      "statusDescription"
-    ).textContent =
-      online
-        ? "Bot is online"
-        : "Bot is offline";
-
-    document
-      .getElementById(
-        "statusDot"
-      )
-      .classList.toggle(
-        "online",
-        online
-      );
-
-  } catch (error) {
-
-    console.error(
-      "BOT STATUS ERROR:",
-      error
-    );
-
-  }
-
-}
-
-
-/* =====================================================
-   COMMAND
-===================================================== */
-
-async function sendCommand() {
-
-  const input =
-    document.getElementById(
-      "commandInput"
-    );
-
-  const command =
-    input.value.trim();
-
-  if (!command) {
-    return;
-  }
-
-  const output =
-    document.getElementById(
-      "consoleOutput"
-    );
-
-  try {
-
-    const data =
-      await api(
-        "/api/bot/command",
-        {
-          method: "POST",
-
-          body:
-            JSON.stringify({
-              command: command
-            })
-        }
-      );
-
-    output.textContent +=
-      `\n> ${data.command || command}`;
-
-    input.value = "";
-
-  } catch (error) {
-
-    output.textContent +=
-      `\n[ERROR] ${error.message}`;
-
-  }
-
-}
-
-
-/* =====================================================
-   INVENTORY
-===================================================== */
-
-async function loadInventory() {
-
-  try {
-
-    const data =
-      await api(
-        "/api/bot/inventory"
-      );
-
-    renderInventory(
-      "mainInventory",
-      data.mainInventory
-    );
-
-    renderInventory(
-      "hotbar",
-      data.hotbar
-    );
-
-  } catch (error) {
-
-    console.error(
-      "INVENTORY ERROR:",
-      error
-    );
-
-    document.getElementById(
-      "mainInventory"
-    ).innerHTML =
-      `<div style="color:#ff8888;">
-        ${escapeHtml(error.message)}
-      </div>`;
-
-  }
-
-}
-
-
-function renderInventory(
-  elementId,
-  inventory
-) {
-
-  const container =
-    document.getElementById(
-      elementId
-    );
-
-  container.innerHTML = "";
-
-  if (!Array.isArray(inventory)) {
-    return;
-  }
-
-  inventory.forEach(
-    item => {
-
-      const slot =
-        document.createElement(
-          "div"
-        );
-
-      slot.className =
-        "slot";
-
-      if (item.empty) {
-
-        slot.innerHTML =
-          `<div class="slotNumber">
-             Slot ${item.slot}
-           </div>
-           <div class="slotItem">
-             Empty
-           </div>`;
-
-      } else {
-
-        slot.innerHTML =
-          `<div class="slotNumber">
-             Slot ${item.slot}
-           </div>
-           <div class="slotItem">
-             ID: ${item.network_id}<br>
-             x${item.count}
-           </div>`;
-
-      }
-
-      container.appendChild(
-        slot
-      );
-
-    }
-  );
-
-}
-
-
-/* =====================================================
-   DROP INVENTORY
-===================================================== */
-
-async function dropInventory() {
-
-  if (
-    !confirm(
-      "Drop everything in the MAIN inventory? Your hotbar will NOT be touched."
-    )
-  ) {
-
-    return;
-
-  }
-
-  try {
-
-    const data =
-      await api(
-        "/api/bot/inventory/drop",
-        {
-          method: "POST"
-        }
-      );
-
-    alert(
-      data.message ||
-      `Dropped ${data.dropped || 0} items.`
-    );
-
-    await loadInventory();
-
-  } catch (error) {
-
-    alert(
-      "Drop Error: " +
-      (
-        error.message ||
-        "Unknown error"
-      )
-    );
-
-  }
-
-}
-
-
-/* =====================================================
-   NAVIGATION
-===================================================== */
-
-function openPage(
-  pageId,
-  button
-) {
-
-  document
-    .querySelectorAll(".page")
-    .forEach(
-      page =>
-        page.classList.remove(
-          "active"
-        )
-    );
-
-  document
-    .querySelectorAll(".navBtn")
-    .forEach(
-      btn =>
-        btn.classList.remove(
-          "active"
-        )
-    );
-
-  document
-    .getElementById(pageId)
-    .classList.add(
-      "active"
-    );
-
-  button.classList.add(
-    "active"
-  );
-
-  if (
-    pageId ===
-    "inventory"
-  ) {
-
-    loadInventory();
-
-  }
-
-  if (
-    pageId ===
-    "bots"
-  ) {
-
-    updateBotStatus();
-
-  }
-
-}
-
-
-/* =====================================================
-   REGISTER SCREEN
-===================================================== */
-
-function showRegister() {
-
-  document
-    .getElementById("loginForm")
-    .classList.add(
-      "hidden"
-    );
-
-  document
-    .getElementById("registerForm")
-    .classList.remove(
-      "hidden"
-    );
-
-  document
-    .getElementById("authMessage")
-    .textContent = "";
-
-}
-
-
-/* =====================================================
-   BACK TO LOGIN
-===================================================== */
-
-function showLoginForm() {
-
-  document
-    .getElementById("registerForm")
-    .classList.add(
-      "hidden"
-    );
-
-  document
-    .getElementById("loginForm")
-    .classList.remove(
-      "hidden"
-    );
-
-  document
-    .getElementById("authMessage")
-    .textContent = "";
-
-}
-
-
-/* =====================================================
-   SHOW APP
-===================================================== */
-
-function showApp() {
-
-  document
-    .getElementById("authPage")
-    .classList.add(
-      "hidden"
-    );
-
-  document
-    .getElementById("appPage")
-    .classList.remove(
-      "hidden"
-    );
-
-  updateBotStatus();
-
-}
-
-
-/* =====================================================
-   SHOW LOGIN
-===================================================== */
-
-function showLogin() {
-
-  document
-    .getElementById("appPage")
-    .classList.add(
-      "hidden"
-    );
-
-  document
-    .getElementById("authPage")
-    .classList.remove(
-      "hidden"
-    );
-
-  showLoginForm();
-
-}
-
-
-/* =====================================================
-   ESCAPE HTML
-===================================================== */
-
-function escapeHtml(value) {
-
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-
-}
-
-
-/* =====================================================
+/* =========================================================
    AUTO LOGIN
-===================================================== */
+========================================================= */
 
-async function checkExistingLogin() {
+async function checkExistingSession() {
 
   if (!authToken) {
-
-    showLogin();
 
     return;
 
@@ -2215,48 +3072,40 @@ async function checkExistingLogin() {
 
     showApp();
 
+    startBotPolling();
+
   } catch (error) {
 
-    console.log(
-      "Session expired:",
-      error.message
+    console.error(
+      "SESSION ERROR:",
+      error
     );
 
-    authToken = null;
+    authToken =
+      null;
 
     sessionStorage.removeItem(
       "hqbot_token"
     );
 
-    showLogin();
+    hideApp();
 
   }
 
 }
 
 
-/* =====================================================
+/* =========================================================
    START
-===================================================== */
+========================================================= */
 
-checkExistingLogin();
-
-
-/* =====================================================
-   BOT STATUS REFRESH
-===================================================== */
-
-setInterval(
+document.addEventListener(
+  "DOMContentLoaded",
   () => {
 
-    if (authToken) {
+    checkExistingSession();
 
-      updateBotStatus();
-
-    }
-
-  },
-  5000
+  }
 );
 
 </script>
