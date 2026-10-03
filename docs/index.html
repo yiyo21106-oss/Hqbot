@@ -19,7 +19,7 @@ body {
   min-height: 100vh;
 }
 
-/* AUTH */
+/* ================= AUTH ================= */
 
 #authPage {
   min-height: 100vh;
@@ -81,34 +81,69 @@ body {
   cursor: pointer;
 }
 
-#errorMessage {
+.errorMessage {
   color: #ff5c5c;
   text-align: center;
   margin-bottom: 15px;
 }
 
-/* DASHBOARD */
+/* ================= DASHBOARD ================= */
 
 #dashboard {
   display: none;
   min-height: 100vh;
 }
 
+/* MENU BUTTON */
+
+.menuButton {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 1000;
+
+  width: 45px;
+  height: 45px;
+
+  background: #111613;
+  border: 1px solid #29382f;
+  border-radius: 10px;
+
+  color: white;
+  font-size: 24px;
+
+  cursor: pointer;
+}
+
+/* SIDE MENU */
+
 .sidebar {
   position: fixed;
-  left: 0;
+  left: -250px;
   top: 0;
   bottom: 0;
-  width: 220px;
+
+  width: 250px;
+
   background: #0d110f;
   border-right: 1px solid #202a24;
+
   padding: 25px 15px;
+
+  z-index: 999;
+
+  transition: left 0.25s ease;
+}
+
+.sidebar.open {
+  left: 0;
 }
 
 .logo {
   font-size: 25px;
   font-weight: bold;
   margin-bottom: 35px;
+  padding-left: 10px;
 }
 
 .logo span {
@@ -117,52 +152,74 @@ body {
 
 .nav {
   color: #89938c;
-  padding: 13px;
+  padding: 14px;
   border-radius: 8px;
   margin-bottom: 5px;
+  cursor: pointer;
 }
 
+.nav:hover,
 .nav.active {
   background: #18221c;
   color: white;
 }
 
+/* MAIN */
+
 .main {
-  margin-left: 220px;
-  padding: 30px;
+  min-height: 100vh;
+
+  padding: 80px 30px 35px;
+
+  width: 100%;
+  max-width: 1500px;
+
+  margin: 0 auto;
 }
 
 .topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
+
   margin-bottom: 30px;
 }
 
 .topbar h2 {
-  font-size: 25px;
+  font-size: 28px;
 }
 
 .logout {
   background: #1b241e;
   border: 1px solid #303b34;
   color: white;
+
   padding: 10px 15px;
+
   border-radius: 8px;
   cursor: pointer;
 }
 
+/* STAT CARDS */
+
 .cards {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
   gap: 15px;
 }
 
 .card {
   background: #111613;
   border: 1px solid #253029;
+
   border-radius: 14px;
-  padding: 20px;
+
+  padding: 22px;
+
+  min-height: 120px;
 }
 
 .cardTitle {
@@ -172,22 +229,33 @@ body {
 
 .cardValue {
   font-size: 28px;
-  margin-top: 8px;
+  margin-top: 10px;
 }
+
+/* ACCOUNTS PREVIEW */
 
 .botBox {
   margin-top: 25px;
+
   background: #111613;
+
   border: 1px solid #253029;
+
   border-radius: 14px;
+
   padding: 22px;
+
+  min-height: 180px;
 }
 
 .botRow {
   display: flex;
+
   justify-content: space-between;
   align-items: center;
-  padding: 18px 0;
+
+  padding: 25px 0;
+
   border-bottom: 1px solid #202a24;
 }
 
@@ -195,79 +263,198 @@ body {
   color: #20e66b;
 }
 
+/* CONSOLE */
+
 .console {
   margin-top: 25px;
+
+  background: #111613;
+
+  border: 1px solid #253029;
+
+  border-radius: 14px;
+
+  padding: 22px;
+
+  min-height: 470px;
+}
+
+.console h3 {
+  margin-bottom: 12px;
 }
 
 .consoleBox {
   background: #050706;
+
   border: 1px solid #253029;
+
   border-radius: 12px;
-  padding: 15px;
-  height: 180px;
+
+  padding: 18px;
+
+  height: 350px;
+
   overflow-y: auto;
+
   color: #7cff9f;
+
   font-family: monospace;
+
   font-size: 13px;
+
+  line-height: 1.6;
 }
 
 .commandArea {
   display: flex;
+
   gap: 10px;
-  margin-top: 10px;
+
+  margin-top: 12px;
 }
 
 .commandArea input {
   flex: 1;
-  padding: 13px;
+
+  padding: 14px;
+
   background: #0d110f;
+
   border: 1px solid #29352e;
+
   border-radius: 9px;
+
   color: white;
+
+  outline: none;
+}
+
+.commandArea input:focus {
+  border-color: #20e66b;
 }
 
 .commandArea button {
   background: #20e66b;
-  border: none;
-  border-radius: 9px;
-  padding: 0 20px;
-  font-weight: bold;
-}
 
-/* ADD ACCOUNT */
-
-.addAccount {
-  position: fixed;
-  right: 25px;
-  bottom: 25px;
-  background: #20e66b;
   color: #061008;
+
   border: none;
-  border-radius: 30px;
-  padding: 15px 22px;
+
+  border-radius: 9px;
+
+  padding: 0 25px;
+
   font-weight: bold;
+
   cursor: pointer;
-  box-shadow: 0 5px 25px rgba(32,230,107,0.25);
 }
 
-/* MODAL */
+/* ================= ACCOUNTS PAGE ================= */
+
+#accountsPage {
+  display: none;
+
+  background: #111613;
+
+  border: 1px solid #253029;
+
+  border-radius: 14px;
+
+  padding: 25px;
+
+  min-height: calc(100vh - 115px);
+}
+
+.accountsHeader {
+  display: flex;
+
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 25px;
+}
+
+.accountsHeader h2 {
+  font-size: 25px;
+}
+
+.addAccountInside {
+  background: #20e66b;
+
+  color: #061008;
+
+  border: none;
+
+  border-radius: 10px;
+
+  padding: 12px 18px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+}
+
+.accountList {
+  display: grid;
+
+  grid-template-columns:
+    repeat(auto-fit, minmax(240px, 1fr));
+
+  gap: 15px;
+}
+
+.accountCard {
+  background: #080b0a;
+
+  border: 1px solid #29382f;
+
+  border-radius: 12px;
+
+  padding: 20px;
+}
+
+.accountStatus {
+  color: #89938c;
+
+  margin-top: 8px;
+
+  font-size: 13px;
+}
+
+.accountOnline {
+  color: #20e66b;
+}
+
+/* ================= MODAL ================= */
 
 #accountModal {
   display: none;
+
   position: fixed;
+
   inset: 0;
+
   background: rgba(0,0,0,0.75);
+
   justify-content: center;
   align-items: center;
+
   padding: 20px;
+
+  z-index: 2000;
 }
 
 .modal {
   width: 100%;
+
   max-width: 430px;
+
   background: #111613;
+
   border: 1px solid #29382f;
+
   border-radius: 16px;
+
   padding: 25px;
 }
 
@@ -277,50 +464,118 @@ body {
 
 .modal p {
   color: #929b95;
+
   margin-bottom: 20px;
+
   line-height: 1.5;
 }
 
 .deviceCode {
   display: none;
+
   background: #080b0a;
+
   border: 1px solid #29382f;
+
   padding: 18px;
+
   text-align: center;
+
   border-radius: 10px;
+
   margin-bottom: 15px;
 }
 
 .deviceCode strong {
   display: block;
+
   font-size: 25px;
+
   letter-spacing: 3px;
+
   color: #20e66b;
+
   margin-top: 8px;
 }
 
 .closeButton {
   margin-top: 10px;
+
   width: 100%;
+
   padding: 12px;
+
   border: 1px solid #303b34;
+
   background: transparent;
+
   color: white;
+
   border-radius: 9px;
+
+  cursor: pointer;
 }
 
+/* ================= MOBILE ================= */
+
 @media(max-width: 800px) {
-  .sidebar {
-    display: none;
-  }
 
   .main {
-    margin-left: 0;
-    padding: 20px;
+    padding: 80px 15px 25px;
   }
 
   .cards {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+  .card {
+    min-height: 110px;
+  }
+
+  .console {
+    min-height: 500px;
+  }
+
+  .consoleBox {
+    height: 375px;
+  }
+
+  .topbar h2 {
+    font-size: 24px;
+  }
+
+  .logout {
+    padding: 9px 12px;
+  }
+}
+
+@media(max-width: 500px) {
+
+  .cards {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .commandArea {
+    flex-direction: row;
+  }
+
+  .commandArea button {
+    padding: 0 17px;
+  }
+
+  #accountsPage {
+    min-height: calc(100vh - 105px);
+    padding: 18px;
+  }
+
+  .accountsHeader {
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .addAccountInside {
+    padding: 10px 13px;
   }
 }
 </style>
@@ -333,8 +588,6 @@ body {
 <div id="authPage">
 
   <div class="authBox">
-
-    <!-- LOGIN -->
 
     <div id="loginForm">
 
@@ -364,9 +617,6 @@ body {
       </div>
 
     </div>
-
-
-    <!-- REGISTER -->
 
     <div id="registerForm" style="display:none;">
 
@@ -412,113 +662,230 @@ body {
 
 <div id="dashboard">
 
-  <aside class="sidebar">
+  <!-- THREE LINE MENU -->
+
+  <button
+    class="menuButton"
+    onclick="toggleMenu()"
+  >
+    ☰
+  </button>
+
+
+  <!-- SIDE MENU -->
+
+  <aside
+    id="sidebar"
+    class="sidebar"
+  >
 
     <div class="logo">
       Hq<span>bot</span>
     </div>
 
-    <div class="nav active">Dashboard</div>
-    <div class="nav">Bots</div>
-    <div class="nav">Accounts</div>
-    <div class="nav">Console</div>
-    <div class="nav">Inventory</div>
-    <div class="nav">World</div>
-    <div class="nav">Settings</div>
+    <div
+      class="nav active"
+      onclick="showDashboardPage()"
+    >
+      Dashboard
+    </div>
+
+    <div
+      class="nav"
+      onclick="showAccountsPage()"
+    >
+      Accounts
+    </div>
+
+    <div class="nav">
+      Bots
+    </div>
+
+    <div class="nav">
+      Console
+    </div>
+
+    <div class="nav">
+      Inventory
+    </div>
+
+    <div class="nav">
+      World
+    </div>
+
+    <div class="nav">
+      Settings
+    </div>
 
   </aside>
 
 
   <main class="main">
 
-    <div class="topbar">
+    <!-- ================= DASHBOARD PAGE ================= -->
 
-      <h2>Dashboard</h2>
+    <div id="dashboardPage">
 
-      <button class="logout" onclick="logout()">
-        Logout
-      </button>
+      <div class="topbar">
 
-    </div>
+        <h2>Dashboard</h2>
 
+        <button
+          class="logout"
+          onclick="logout()"
+        >
+          Logout
+        </button>
 
-    <div class="cards">
-
-      <div class="card">
-        <div class="cardTitle">Total Bots</div>
-        <div class="cardValue">0</div>
       </div>
 
-      <div class="card">
-        <div class="cardTitle">Online</div>
-        <div class="cardValue">0</div>
-      </div>
 
-      <div class="card">
-        <div class="cardTitle">Automations</div>
-        <div class="cardValue">0</div>
-      </div>
+      <div class="cards">
 
-      <div class="card">
-        <div class="cardTitle">Platform</div>
-        <div class="cardValue">Bedrock</div>
-      </div>
+        <div class="card">
+          <div class="cardTitle">
+            Total Bots
+          </div>
 
-    </div>
-
-
-    <div class="botBox">
-
-      <h3>Accounts</h3>
-
-      <div class="botRow">
-        <div>
-          <strong>No Minecraft accounts</strong>
-          <div style="color:#89938c;margin-top:5px;">
-            Add a Microsoft/Xbox account to get started.
+          <div class="cardValue">
+            0
           </div>
         </div>
 
-        <div style="color:#89938c;">
-          Offline
+        <div class="card">
+          <div class="cardTitle">
+            Online
+          </div>
+
+          <div class="cardValue">
+            0
+          </div>
         </div>
+
+        <div class="card">
+          <div class="cardTitle">
+            Automations
+          </div>
+
+          <div class="cardValue">
+            0
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="cardTitle">
+            Platform
+          </div>
+
+          <div class="cardValue">
+            Bedrock
+          </div>
+        </div>
+
+      </div>
+
+
+      <div class="botBox">
+
+        <h3>Accounts</h3>
+
+        <div class="botRow">
+
+          <div>
+            <strong>
+              No Minecraft accounts
+            </strong>
+
+            <div
+              style="
+              color:#89938c;
+              margin-top:5px;
+              "
+            >
+              Add an account from the Accounts section.
+            </div>
+          </div>
+
+          <div style="color:#89938c;">
+            Offline
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="console">
+
+        <h3>
+          Console
+        </h3>
+
+        <div
+          id="consoleBox"
+          class="consoleBox"
+        >
+          [SYSTEM] Hqbot dashboard loaded.
+        </div>
+
+        <div class="commandArea">
+
+          <input
+            id="commandInput"
+            placeholder="Type a Minecraft command..."
+            onkeydown="if(event.key==='Enter') runCommand()"
+          >
+
+          <button onclick="runCommand()">
+            Send
+          </button>
+
+        </div>
+
       </div>
 
     </div>
 
 
-    <div class="console">
+    <!-- ================= ACCOUNTS PAGE ================= -->
 
-      <h3 style="margin-bottom:10px;">
-        Console
-      </h3>
+    <div id="accountsPage">
 
-      <div id="consoleBox" class="consoleBox">
-        [SYSTEM] Hqbot dashboard loaded.
+      <div class="accountsHeader">
+
+        <h2>
+          Accounts
+        </h2>
+
+        <button
+          class="addAccountInside"
+          onclick="openAccountModal()"
+        >
+          + Add Account
+        </button>
+
       </div>
 
-      <div class="commandArea">
 
-        <input
-          id="commandInput"
-          placeholder="Type a Minecraft command..."
-          onkeydown="if(event.key==='Enter') runCommand()"
-        >
+      <div class="accountList">
 
-        <button onclick="runCommand()">
-          Send
-        </button>
+        <div class="accountCard">
+
+          <strong>
+            No Minecraft accounts
+          </strong>
+
+          <div class="accountStatus">
+            Add a Microsoft/Xbox account to get started.
+          </div>
+
+        </div>
 
       </div>
 
     </div>
 
   </main>
-
-
-  <button class="addAccount" onclick="openAccountModal()">
-    + Add Account
-  </button>
 
 </div>
 
@@ -529,7 +896,9 @@ body {
 
   <div class="modal">
 
-    <h2>Add Microsoft Account</h2>
+    <h2>
+      Add Microsoft Account
+    </h2>
 
     <p>
       Connect your Minecraft Bedrock account using
@@ -537,14 +906,26 @@ body {
       Your Microsoft password is never requested here.
     </p>
 
-    <div id="deviceCode" class="deviceCode">
+    <div
+      id="deviceCode"
+      class="deviceCode"
+    >
 
-      <div>Enter this code at the Microsoft login page:</div>
+      <div>
+        Enter this code at the Microsoft login page:
+      </div>
 
-      <strong id="codeText">------</strong>
+      <strong id="codeText">
+        ------
+      </strong>
 
-      <div id="verificationText"
-           style="margin-top:10px;color:#89938c;">
+      <div
+        id="verificationText"
+        style="
+        margin-top:10px;
+        color:#89938c;
+        "
+      >
       </div>
 
     </div>
@@ -577,7 +958,6 @@ body {
 
 const HQBOT_API =
   "https://hqbot-production-b81b.up.railway.app";
-
 
 let authToken =
   sessionStorage.getItem("hqbotToken");
@@ -650,7 +1030,8 @@ async function login() {
       }
     );
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
     if (!response.ok) {
 
@@ -660,7 +1041,8 @@ async function login() {
       return;
     }
 
-    authToken = data.token;
+    authToken =
+      data.token;
 
     sessionStorage.setItem(
       "hqbotToken",
@@ -727,7 +1109,8 @@ async function register() {
       }
     );
 
-    const data = await response.json();
+    const data =
+      await response.json();
 
     if (!response.ok) {
 
@@ -737,7 +1120,8 @@ async function register() {
       return;
     }
 
-    authToken = data.token;
+    authToken =
+      data.token;
 
     sessionStorage.setItem(
       "hqbotToken",
@@ -766,7 +1150,11 @@ function showDashboard() {
   document.getElementById("dashboard").style.display =
     "block";
 
-  addLog("[SYSTEM] Logged in successfully.");
+  showDashboardPage();
+
+  addLog(
+    "[SYSTEM] Logged in successfully."
+  );
 }
 
 
@@ -777,6 +1165,62 @@ function showAuth() {
 
   document.getElementById("dashboard").style.display =
     "none";
+}
+
+
+/* =========================
+   MENU
+========================= */
+
+function toggleMenu() {
+
+  document
+    .getElementById("sidebar")
+    .classList.toggle("open");
+}
+
+
+function closeMenu() {
+
+  document
+    .getElementById("sidebar")
+    .classList.remove("open");
+}
+
+
+/* =========================
+   DASHBOARD PAGE
+========================= */
+
+function showDashboardPage() {
+
+  document.getElementById(
+    "dashboardPage"
+  ).style.display = "block";
+
+  document.getElementById(
+    "accountsPage"
+  ).style.display = "none";
+
+  closeMenu();
+}
+
+
+/* =========================
+   ACCOUNTS PAGE
+========================= */
+
+function showAccountsPage() {
+
+  document.getElementById(
+    "dashboardPage"
+  ).style.display = "none";
+
+  document.getElementById(
+    "accountsPage"
+  ).style.display = "block";
+
+  closeMenu();
 }
 
 
@@ -819,7 +1263,9 @@ async function logout() {
 function addLog(message) {
 
   const box =
-    document.getElementById("consoleBox");
+    document.getElementById(
+      "consoleBox"
+    );
 
   box.innerHTML +=
     "<br>" + message;
@@ -832,7 +1278,9 @@ function addLog(message) {
 function runCommand() {
 
   const input =
-    document.getElementById("commandInput");
+    document.getElementById(
+      "commandInput"
+    );
 
   const command =
     input.value.trim();
@@ -858,17 +1306,17 @@ function runCommand() {
 
 function openAccountModal() {
 
-  document.getElementById("accountModal")
-    .style.display = "flex";
-
+  document.getElementById(
+    "accountModal"
+  ).style.display = "flex";
 }
 
 
 function closeAccountModal() {
 
-  document.getElementById("accountModal")
-    .style.display = "none";
-
+  document.getElementById(
+    "accountModal"
+  ).style.display = "none";
 }
 
 
@@ -876,7 +1324,9 @@ async function startMicrosoftLogin() {
 
   if (!authToken) {
 
-    alert("Please login to Hqbot first.");
+    alert(
+      "Please login to Hqbot first."
+    );
 
     return;
   }
@@ -921,6 +1371,7 @@ async function startMicrosoftLogin() {
       );
 
       button.disabled = false;
+
       button.textContent =
         "Sign in with Microsoft";
 
@@ -1013,14 +1464,18 @@ async function pollMicrosoftLogin(
 
       addLog(
         "[ERROR] " +
-        (data.error || "Microsoft login failed.")
+        (
+          data.error ||
+          "Microsoft login failed."
+        )
       );
 
       return;
     }
 
     setTimeout(
-      () => pollMicrosoftLogin(sessionId),
+      () =>
+        pollMicrosoftLogin(sessionId),
       2000
     );
 
@@ -1074,11 +1529,6 @@ async function checkLogin() {
     }
 
   } catch (err) {
-
-    /*
-      If backend is temporarily unavailable,
-      stay on the login screen.
-    */
 
     showAuth();
   }
