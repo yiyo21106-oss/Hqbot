@@ -70,6 +70,11 @@ body {
   cursor: pointer;
 }
 
+.mainButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .switchText {
   text-align: center;
   margin-top: 20px;
@@ -94,44 +99,31 @@ body {
   min-height: 100vh;
 }
 
-/* MENU BUTTON */
-
 .menuButton {
   position: fixed;
   top: 18px;
   left: 18px;
   z-index: 1000;
-
   width: 45px;
   height: 45px;
-
   background: #111613;
   border: 1px solid #29382f;
   border-radius: 10px;
-
   color: white;
   font-size: 24px;
-
   cursor: pointer;
 }
-
-/* SIDE MENU */
 
 .sidebar {
   position: fixed;
   left: -250px;
   top: 0;
   bottom: 0;
-
   width: 250px;
-
   background: #0d110f;
   border-right: 1px solid #202a24;
-
   padding: 25px 15px;
-
   z-index: 999;
-
   transition: left 0.25s ease;
 }
 
@@ -164,16 +156,11 @@ body {
   color: white;
 }
 
-/* MAIN */
-
 .main {
   min-height: 100vh;
-
   padding: 80px 30px 35px;
-
   width: 100%;
   max-width: 1500px;
-
   margin: 0 auto;
 }
 
@@ -181,7 +168,6 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   margin-bottom: 30px;
 }
 
@@ -193,32 +179,24 @@ body {
   background: #1b241e;
   border: 1px solid #303b34;
   color: white;
-
   padding: 10px 15px;
-
   border-radius: 8px;
   cursor: pointer;
 }
 
-/* STAT CARDS */
+/* ================= CARDS ================= */
 
 .cards {
   display: grid;
-
-  grid-template-columns:
-    repeat(4, 1fr);
-
+  grid-template-columns: repeat(4, 1fr);
   gap: 15px;
 }
 
 .card {
   background: #111613;
   border: 1px solid #253029;
-
   border-radius: 14px;
-
   padding: 22px;
-
   min-height: 120px;
 }
 
@@ -232,51 +210,163 @@ body {
   margin-top: 10px;
 }
 
-/* ACCOUNTS PREVIEW */
+/* ================= GENERAL BOX ================= */
 
-.botBox {
+.sectionBox {
   margin-top: 25px;
-
   background: #111613;
-
   border: 1px solid #253029;
-
   border-radius: 14px;
-
   padding: 22px;
-
-  min-height: 180px;
 }
 
-.botRow {
-  display: flex;
+/* ================= BOT ================= */
 
+.botStatusRow {
+  display: flex;
   justify-content: space-between;
   align-items: center;
-
-  padding: 25px 0;
-
+  padding: 18px 0;
   border-bottom: 1px solid #202a24;
 }
 
-.online {
+.statusOnline {
   color: #20e66b;
 }
 
-/* CONSOLE */
+.statusOffline {
+  color: #ff5c5c;
+}
+
+.statusWaiting {
+  color: #ffc857;
+}
+
+.botActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  border: none;
+  border-radius: 9px;
+  padding: 12px 18px;
+  background: #20e66b;
+  color: #061008;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.actionButton.secondary {
+  background: #1b241e;
+  color: white;
+  border: 1px solid #303b34;
+}
+
+.actionButton.danger {
+  background: #ff5c5c;
+  color: #190000;
+}
+
+/* ================= INVENTORY ================= */
+
+.inventoryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.inventoryHeader h3 {
+  font-size: 21px;
+}
+
+.inventoryGrid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 7px;
+}
+
+.inventorySlot {
+  aspect-ratio: 1 / 1;
+  background: #080b0a;
+  border: 1px solid #29382f;
+  border-radius: 7px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+}
+
+.inventorySlot.empty {
+  opacity: 0.45;
+}
+
+.slotNumber {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  color: #657069;
+  font-size: 9px;
+}
+
+.itemText {
+  font-size: 9px;
+  text-align: center;
+  word-break: break-word;
+  padding: 3px;
+}
+
+.itemCount {
+  position: absolute;
+  bottom: 3px;
+  right: 5px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #20e66b;
+}
+
+.hotbarTitle {
+  margin-top: 28px;
+  margin-bottom: 12px;
+  color: #89938c;
+}
+
+.hotbarGrid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 7px;
+}
+
+.hotbarSlot {
+  aspect-ratio: 1 / 1;
+  background: #101612;
+  border: 1px solid #39483e;
+  border-radius: 7px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hotbarNotice {
+  margin-top: 12px;
+  color: #89938c;
+  font-size: 12px;
+}
+
+/* ================= CONSOLE ================= */
 
 .console {
   margin-top: 25px;
-
   background: #111613;
-
   border: 1px solid #253029;
-
   border-radius: 14px;
-
   padding: 22px;
-
-  min-height: 470px;
 }
 
 .console h3 {
@@ -285,176 +375,112 @@ body {
 
 .consoleBox {
   background: #050706;
-
   border: 1px solid #253029;
-
   border-radius: 12px;
-
   padding: 18px;
-
-  height: 350px;
-
+  height: 300px;
   overflow-y: auto;
-
   color: #7cff9f;
-
   font-family: monospace;
-
   font-size: 13px;
-
   line-height: 1.6;
 }
 
 .commandArea {
   display: flex;
-
   gap: 10px;
-
   margin-top: 12px;
 }
 
 .commandArea input {
   flex: 1;
-
   padding: 14px;
-
   background: #0d110f;
-
   border: 1px solid #29352e;
-
   border-radius: 9px;
-
   color: white;
-
   outline: none;
-}
-
-.commandArea input:focus {
-  border-color: #20e66b;
 }
 
 .commandArea button {
   background: #20e66b;
-
   color: #061008;
-
   border: none;
-
   border-radius: 9px;
-
   padding: 0 25px;
-
   font-weight: bold;
-
   cursor: pointer;
 }
 
-/* ================= ACCOUNTS PAGE ================= */
+/* ================= ACCOUNTS ================= */
 
-#accountsPage {
+#accountsPage,
+#botsPage,
+#inventoryPage {
   display: none;
-
-  background: #111613;
-
-  border: 1px solid #253029;
-
-  border-radius: 14px;
-
-  padding: 25px;
-
-  min-height: calc(100vh - 115px);
 }
 
-.accountsHeader {
+.accountsHeader,
+.pageHeader {
   display: flex;
-
   justify-content: space-between;
   align-items: center;
-
   margin-bottom: 25px;
 }
 
-.accountsHeader h2 {
+.accountsHeader h2,
+.pageHeader h2 {
   font-size: 25px;
 }
 
 .addAccountInside {
   background: #20e66b;
-
   color: #061008;
-
   border: none;
-
   border-radius: 10px;
-
   padding: 12px 18px;
-
   font-weight: bold;
-
   cursor: pointer;
 }
 
 .accountList {
   display: grid;
-
-  grid-template-columns:
-    repeat(auto-fit, minmax(240px, 1fr));
-
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 15px;
 }
 
 .accountCard {
   background: #080b0a;
-
   border: 1px solid #29382f;
-
   border-radius: 12px;
-
   padding: 20px;
 }
 
 .accountStatus {
   color: #89938c;
-
   margin-top: 8px;
-
   font-size: 13px;
-}
-
-.accountOnline {
-  color: #20e66b;
 }
 
 /* ================= MODAL ================= */
 
 #accountModal {
   display: none;
-
   position: fixed;
-
   inset: 0;
-
   background: rgba(0,0,0,0.75);
-
   justify-content: center;
   align-items: center;
-
   padding: 20px;
-
   z-index: 2000;
 }
 
 .modal {
   width: 100%;
-
   max-width: 430px;
-
   background: #111613;
-
   border: 1px solid #29382f;
-
   border-radius: 16px;
-
   padding: 25px;
 }
 
@@ -464,55 +490,36 @@ body {
 
 .modal p {
   color: #929b95;
-
   margin-bottom: 20px;
-
   line-height: 1.5;
 }
 
 .deviceCode {
   display: none;
-
   background: #080b0a;
-
   border: 1px solid #29382f;
-
   padding: 18px;
-
   text-align: center;
-
   border-radius: 10px;
-
   margin-bottom: 15px;
 }
 
 .deviceCode strong {
   display: block;
-
   font-size: 25px;
-
   letter-spacing: 3px;
-
   color: #20e66b;
-
   margin-top: 8px;
 }
 
 .closeButton {
   margin-top: 10px;
-
   width: 100%;
-
   padding: 12px;
-
   border: 1px solid #303b34;
-
   background: transparent;
-
   color: white;
-
   border-radius: 9px;
-
   cursor: pointer;
 }
 
@@ -525,28 +532,16 @@ body {
   }
 
   .cards {
-    grid-template-columns:
-      repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 
-  .card {
-    min-height: 110px;
-  }
-
-  .console {
-    min-height: 500px;
-  }
-
-  .consoleBox {
-    height: 375px;
+  .inventoryGrid,
+  .hotbarGrid {
+    gap: 4px;
   }
 
   .topbar h2 {
     font-size: 24px;
-  }
-
-  .logout {
-    padding: 9px 12px;
   }
 }
 
@@ -564,18 +559,27 @@ body {
     padding: 0 17px;
   }
 
-  #accountsPage {
-    min-height: calc(100vh - 105px);
-    padding: 18px;
+  .inventorySlot,
+  .hotbarSlot {
+    border-radius: 5px;
   }
 
-  .accountsHeader {
+  .itemText {
+    font-size: 7px;
+  }
+
+  .itemCount {
+    font-size: 9px;
+  }
+
+  .slotNumber {
+    font-size: 7px;
+  }
+
+  .inventoryHeader,
+  .accountsHeader,
+  .pageHeader {
     align-items: flex-start;
-    gap: 15px;
-  }
-
-  .addAccountInside {
-    padding: 10px 13px;
   }
 }
 </style>
@@ -583,7 +587,7 @@ body {
 
 <body>
 
-<!-- ================= LOGIN / REGISTER ================= -->
+<!-- ================= LOGIN ================= -->
 
 <div id="authPage">
 
@@ -662,8 +666,6 @@ body {
 
 <div id="dashboard">
 
-  <!-- THREE LINE MENU -->
-
   <button
     class="menuButton"
     onclick="toggleMenu()"
@@ -671,19 +673,14 @@ body {
     ☰
   </button>
 
-
-  <!-- SIDE MENU -->
-
-  <aside
-    id="sidebar"
-    class="sidebar"
-  >
+  <aside id="sidebar" class="sidebar">
 
     <div class="logo">
       Hq<span>bot</span>
     </div>
 
     <div
+      id="navDashboard"
       class="nav active"
       onclick="showDashboardPage()"
     >
@@ -691,21 +688,34 @@ body {
     </div>
 
     <div
+      id="navAccounts"
       class="nav"
       onclick="showAccountsPage()"
     >
       Accounts
     </div>
 
-    <div class="nav">
+    <div
+      id="navBots"
+      class="nav"
+      onclick="showBotsPage()"
+    >
       Bots
     </div>
 
-    <div class="nav">
+    <div
+      id="navConsole"
+      class="nav"
+      onclick="showConsolePage()"
+    >
       Console
     </div>
 
-    <div class="nav">
+    <div
+      id="navInventory"
+      class="nav"
+      onclick="showInventoryPage()"
+    >
       Inventory
     </div>
 
@@ -739,7 +749,6 @@ body {
 
       </div>
 
-
       <div class="cards">
 
         <div class="card">
@@ -747,7 +756,10 @@ body {
             Total Bots
           </div>
 
-          <div class="cardValue">
+          <div
+            id="totalBots"
+            class="cardValue"
+          >
             0
           </div>
         </div>
@@ -757,7 +769,10 @@ body {
             Online
           </div>
 
-          <div class="cardValue">
+          <div
+            id="onlineBots"
+            class="cardValue"
+          >
             0
           </div>
         </div>
@@ -785,28 +800,32 @@ body {
       </div>
 
 
-      <div class="botBox">
+      <div class="sectionBox">
 
-        <h3>Accounts</h3>
+        <h3>Bot Status</h3>
 
-        <div class="botRow">
+        <div class="botStatusRow">
 
           <div>
-            <strong>
-              No Minecraft accounts
+            <strong id="dashboardBotName">
+              Minecraft Bot
             </strong>
 
             <div
+              id="dashboardBotStatus"
               style="
               color:#89938c;
               margin-top:5px;
               "
             >
-              Add an account from the Accounts section.
+              Offline
             </div>
           </div>
 
-          <div style="color:#89938c;">
+          <div
+            id="dashboardStatus"
+            class="statusOffline"
+          >
             Offline
           </div>
 
@@ -866,17 +885,16 @@ body {
 
       </div>
 
-
       <div class="accountList">
 
         <div class="accountCard">
 
           <strong>
-            No Minecraft accounts
+            Minecraft Account
           </strong>
 
           <div class="accountStatus">
-            Add a Microsoft/Xbox account to get started.
+            Connect a Microsoft/Xbox account to start the bot.
           </div>
 
         </div>
@@ -884,6 +902,146 @@ body {
       </div>
 
     </div>
+
+
+    <!-- ================= BOTS PAGE ================= -->
+
+    <div id="botsPage">
+
+      <div class="pageHeader">
+
+        <h2>
+          Bots
+        </h2>
+
+        <button
+          class="actionButton secondary"
+          onclick="refreshBotStatus()"
+        >
+          Refresh
+        </button>
+
+      </div>
+
+
+      <div class="sectionBox">
+
+        <div class="botStatusRow">
+
+          <div>
+
+            <strong>
+              Minecraft Bedrock Bot
+            </strong>
+
+            <div
+              id="botPageStatusText"
+              style="
+              color:#89938c;
+              margin-top:7px;
+              "
+            >
+              Checking status...
+            </div>
+
+          </div>
+
+          <div
+            id="botPageStatus"
+            class="statusOffline"
+          >
+            Offline
+          </div>
+
+        </div>
+
+
+        <div class="botActions">
+
+          <button
+            class="actionButton"
+            onclick="showInventoryPage()"
+          >
+            📦 Inventory
+          </button>
+
+          <button
+            class="actionButton secondary"
+            onclick="refreshBotStatus()"
+          >
+            🔄 Refresh Status
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ================= INVENTORY PAGE ================= -->
+
+    <div id="inventoryPage">
+
+      <div class="pageHeader">
+
+        <h2>
+          Inventory
+        </h2>
+
+        <button
+          class="actionButton secondary"
+          onclick="loadInventory()"
+        >
+          🔄 Refresh
+        </button>
+
+      </div>
+
+
+      <div class="sectionBox">
+
+        <div class="inventoryHeader">
+
+          <h3>
+            Main Inventory
+          </h3>
+
+          <button
+            id="dropInventoryButton"
+            class="actionButton danger"
+            onclick="dropInventory()"
+          >
+            🗑️ Drop Inventory
+          </button>
+
+        </div>
+
+        <div
+          id="mainInventoryGrid"
+          class="inventoryGrid"
+        >
+        </div>
+
+
+        <div class="hotbarTitle">
+          Hotbar
+        </div>
+
+        <div
+          id="hotbarGrid"
+          class="hotbarGrid"
+        >
+        </div>
+
+        <div class="hotbarNotice">
+          🔒 Hotbar is protected. Drop Inventory will never touch these slots.
+        </div>
+
+      </div>
+
+    </div>
+
 
   </main>
 
@@ -952,9 +1110,9 @@ body {
 
 <script>
 
-/* =========================
-   Hqbot backend
-========================= */
+/* =========================================================
+   API
+   ========================================================= */
 
 const HQBOT_API =
   "https://hqbot-production-b81b.up.railway.app";
@@ -963,9 +1121,9 @@ let authToken =
   sessionStorage.getItem("hqbotToken");
 
 
-/* =========================
-   AUTH SCREEN
-========================= */
+/* =========================================================
+   AUTH
+   ========================================================= */
 
 function showRegister() {
 
@@ -987,20 +1145,22 @@ function showLogin() {
 }
 
 
-/* =========================
-   LOGIN
-========================= */
-
 async function login() {
 
   const username =
-    document.getElementById("loginUsername").value.trim();
+    document.getElementById(
+      "loginUsername"
+    ).value.trim();
 
   const password =
-    document.getElementById("loginPassword").value;
+    document.getElementById(
+      "loginPassword"
+    ).value;
 
   const error =
-    document.getElementById("loginError");
+    document.getElementById(
+      "loginError"
+    );
 
   error.textContent = "";
 
@@ -1014,21 +1174,25 @@ async function login() {
 
   try {
 
-    const response = await fetch(
-      HQBOT_API + "/api/auth/login",
-      {
-        method: "POST",
+    const response =
+      await fetch(
+        HQBOT_API +
+        "/api/auth/login",
+        {
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
 
-        body: JSON.stringify({
-          username,
-          password
-        })
-      }
-    );
+          body:
+            JSON.stringify({
+              username,
+              password
+            })
+        }
+      );
 
     const data =
       await response.json();
@@ -1036,7 +1200,8 @@ async function login() {
     if (!response.ok) {
 
       error.textContent =
-        data.error || "Login failed.";
+        data.error ||
+        "Login failed.";
 
       return;
     }
@@ -1059,30 +1224,35 @@ async function login() {
 }
 
 
-/* =========================
-   REGISTER
-========================= */
-
 async function register() {
 
   const username =
-    document.getElementById("registerUsername")
-      .value.trim();
+    document.getElementById(
+      "registerUsername"
+    ).value.trim();
 
   const password =
-    document.getElementById("registerPassword")
-      .value;
+    document.getElementById(
+      "registerPassword"
+    ).value;
 
   const activationKey =
-    document.getElementById("activationKey")
-      .value.trim();
+    document.getElementById(
+      "activationKey"
+    ).value.trim();
 
   const error =
-    document.getElementById("registerError");
+    document.getElementById(
+      "registerError"
+    );
 
   error.textContent = "";
 
-  if (!username || !password || !activationKey) {
+  if (
+    !username ||
+    !password ||
+    !activationKey
+  ) {
 
     error.textContent =
       "Fill in all fields.";
@@ -1092,22 +1262,26 @@ async function register() {
 
   try {
 
-    const response = await fetch(
-      HQBOT_API + "/api/auth/register",
-      {
-        method: "POST",
+    const response =
+      await fetch(
+        HQBOT_API +
+        "/api/auth/register",
+        {
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
 
-        body: JSON.stringify({
-          username,
-          password,
-          activationKey
-        })
-      }
-    );
+          body:
+            JSON.stringify({
+              username,
+              password,
+              activationKey
+            })
+        }
+      );
 
     const data =
       await response.json();
@@ -1115,7 +1289,8 @@ async function register() {
     if (!response.ok) {
 
       error.textContent =
-        data.error || "Registration failed.";
+        data.error ||
+        "Registration failed.";
 
       return;
     }
@@ -1138,39 +1313,45 @@ async function register() {
 }
 
 
-/* =========================
+/* =========================================================
    DASHBOARD
-========================= */
+   ========================================================= */
 
 function showDashboard() {
 
-  document.getElementById("authPage").style.display =
-    "none";
+  document.getElementById(
+    "authPage"
+  ).style.display = "none";
 
-  document.getElementById("dashboard").style.display =
-    "block";
+  document.getElementById(
+    "dashboard"
+  ).style.display = "block";
 
   showDashboardPage();
 
   addLog(
     "[SYSTEM] Logged in successfully."
   );
+
+  refreshBotStatus();
 }
 
 
 function showAuth() {
 
-  document.getElementById("authPage").style.display =
-    "flex";
+  document.getElementById(
+    "authPage"
+  ).style.display = "flex";
 
-  document.getElementById("dashboard").style.display =
-    "none";
+  document.getElementById(
+    "dashboard"
+  ).style.display = "none";
 }
 
 
-/* =========================
+/* =========================================================
    MENU
-========================= */
+   ========================================================= */
 
 function toggleMenu() {
 
@@ -1188,58 +1369,160 @@ function closeMenu() {
 }
 
 
-/* =========================
-   DASHBOARD PAGE
-========================= */
+function setActiveNav(id) {
+
+  document
+    .querySelectorAll(".nav")
+    .forEach(
+      nav =>
+        nav.classList.remove(
+          "active"
+        )
+    );
+
+  const nav =
+    document.getElementById(id);
+
+  if (nav) {
+    nav.classList.add("active");
+  }
+}
+
+
+/* =========================================================
+   PAGE SWITCHING
+   ========================================================= */
+
+function hideAllPages() {
+
+  document.getElementById(
+    "dashboardPage"
+  ).style.display = "none";
+
+  document.getElementById(
+    "accountsPage"
+  ).style.display = "none";
+
+  document.getElementById(
+    "botsPage"
+  ).style.display = "none";
+
+  document.getElementById(
+    "inventoryPage"
+  ).style.display = "none";
+}
+
 
 function showDashboardPage() {
 
+  hideAllPages();
+
   document.getElementById(
     "dashboardPage"
   ).style.display = "block";
 
-  document.getElementById(
-    "accountsPage"
-  ).style.display = "none";
+  setActiveNav(
+    "navDashboard"
+  );
 
   closeMenu();
+
+  refreshBotStatus();
 }
 
-
-/* =========================
-   ACCOUNTS PAGE
-========================= */
 
 function showAccountsPage() {
 
-  document.getElementById(
-    "dashboardPage"
-  ).style.display = "none";
+  hideAllPages();
 
   document.getElementById(
     "accountsPage"
   ).style.display = "block";
 
+  setActiveNav(
+    "navAccounts"
+  );
+
   closeMenu();
 }
 
 
-/* =========================
+function showBotsPage() {
+
+  hideAllPages();
+
+  document.getElementById(
+    "botsPage"
+  ).style.display = "block";
+
+  setActiveNav(
+    "navBots"
+  );
+
+  closeMenu();
+
+  refreshBotStatus();
+}
+
+
+function showConsolePage() {
+
+  hideAllPages();
+
+  document.getElementById(
+    "dashboardPage"
+  ).style.display = "block";
+
+  setActiveNav(
+    "navConsole"
+  );
+
+  closeMenu();
+
+  document
+    .getElementById("consoleBox")
+    .scrollIntoView({
+      behavior: "smooth"
+    });
+}
+
+
+function showInventoryPage() {
+
+  hideAllPages();
+
+  document.getElementById(
+    "inventoryPage"
+  ).style.display = "block";
+
+  setActiveNav(
+    "navInventory"
+  );
+
+  closeMenu();
+
+  loadInventory();
+}
+
+
+/* =========================================================
    LOGOUT
-========================= */
+   ========================================================= */
 
 async function logout() {
 
   try {
 
     await fetch(
-      HQBOT_API + "/api/auth/logout",
+      HQBOT_API +
+      "/api/auth/logout",
       {
         method: "POST",
 
         headers: {
           Authorization:
-            "Bearer " + authToken
+            "Bearer " +
+            authToken
         }
       }
     );
@@ -1256,9 +1539,9 @@ async function logout() {
 }
 
 
-/* =========================
+/* =========================================================
    CONSOLE
-========================= */
+   ========================================================= */
 
 function addLog(message) {
 
@@ -1268,14 +1551,40 @@ function addLog(message) {
     );
 
   box.innerHTML +=
-    "<br>" + message;
+    "<br>" + escapeHtml(message);
 
   box.scrollTop =
     box.scrollHeight;
 }
 
 
-function runCommand() {
+function escapeHtml(text) {
+
+  return String(text)
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+}
+
+
+async function runCommand() {
 
   const input =
     document.getElementById(
@@ -1285,30 +1594,647 @@ function runCommand() {
   const command =
     input.value.trim();
 
-  if (!command) return;
+  if (!command) {
+    return;
+  }
 
   addLog(
-    "[COMMAND] " + command
+    "[COMMAND] " +
+    command
   );
 
   input.value = "";
 
-  /*
-    Minecraft command execution will be
-    connected to the actual bot backend later.
-  */
+  if (!authToken) {
+    addLog(
+      "[ERROR] Not logged in."
+    );
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        HQBOT_API +
+        "/api/bot/command",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              "Bearer " +
+              authToken
+          },
+
+          body:
+            JSON.stringify({
+              command
+            })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+
+      addLog(
+        "[ERROR] " +
+        (
+          data.error ||
+          "Command failed."
+        )
+      );
+
+      return;
+    }
+
+    addLog(
+      "[SYSTEM] Command sent."
+    );
+
+  } catch (err) {
+
+    addLog(
+      "[ERROR] Could not connect to Hqbot."
+    );
+  }
 }
 
 
-/* =========================
+/* =========================================================
+   BOT STATUS
+   ========================================================= */
+
+async function refreshBotStatus() {
+
+  if (!authToken) {
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        HQBOT_API +
+        "/api/bot/status",
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              authToken
+          }
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+
+      updateBotStatusUI(
+        false,
+        data.error ||
+        "Offline"
+      );
+
+      return;
+    }
+
+    updateBotStatusUI(
+      data.online === true,
+      data.status ||
+      "offline"
+    );
+
+  } catch (err) {
+
+    updateBotStatusUI(
+      false,
+      "Connection error"
+    );
+  }
+}
+
+
+function updateBotStatusUI(
+  online,
+  status
+) {
+
+  const dashboardStatus =
+    document.getElementById(
+      "dashboardStatus"
+    );
+
+  const dashboardText =
+    document.getElementById(
+      "dashboardBotStatus"
+    );
+
+  const botPageStatus =
+    document.getElementById(
+      "botPageStatus"
+    );
+
+  const botPageText =
+    document.getElementById(
+      "botPageStatusText"
+    );
+
+  const total =
+    document.getElementById(
+      "totalBots"
+    );
+
+  const onlineCount =
+    document.getElementById(
+      "onlineBots"
+    );
+
+  if (online) {
+
+    dashboardStatus.textContent =
+      "Online";
+
+    dashboardStatus.className =
+      "statusOnline";
+
+    dashboardText.textContent =
+      "Bot is online.";
+
+    botPageStatus.textContent =
+      "Online";
+
+    botPageStatus.className =
+      "statusOnline";
+
+    botPageText.textContent =
+      "Bot is connected and online.";
+
+    total.textContent = "1";
+
+    onlineCount.textContent = "1";
+
+  } else {
+
+    dashboardStatus.textContent =
+      "Offline";
+
+    dashboardStatus.className =
+      "statusOffline";
+
+    dashboardText.textContent =
+      status;
+
+    botPageStatus.textContent =
+      "Offline";
+
+    botPageStatus.className =
+      "statusOffline";
+
+    botPageText.textContent =
+      status;
+
+    total.textContent = "0";
+
+    onlineCount.textContent = "0";
+  }
+}
+
+
+/* =========================================================
+   INVENTORY
+   ========================================================= */
+
+function createInventorySlot(
+  entry,
+  fallbackSlot
+) {
+
+  const slot =
+    document.createElement(
+      "div"
+    );
+
+  slot.className =
+    "inventorySlot";
+
+  const slotNumber =
+    document.createElement(
+      "div"
+    );
+
+  slotNumber.className =
+    "slotNumber";
+
+  slotNumber.textContent =
+    fallbackSlot;
+
+  slot.appendChild(
+    slotNumber
+  );
+
+  if (
+    !entry ||
+    entry.empty ||
+    !entry.count
+  ) {
+
+    slot.classList.add(
+      "empty"
+    );
+
+    return slot;
+  }
+
+  const itemText =
+    document.createElement(
+      "div"
+    );
+
+  itemText.className =
+    "itemText";
+
+  itemText.textContent =
+    getItemName(entry);
+
+  slot.appendChild(
+    itemText
+  );
+
+  const count =
+    document.createElement(
+      "div"
+    );
+
+  count.className =
+    "itemCount";
+
+  count.textContent =
+    entry.count;
+
+  slot.appendChild(
+    count
+  );
+
+  return slot;
+}
+
+
+function getItemName(entry) {
+
+  if (
+    entry.name
+  ) {
+    return entry.name;
+  }
+
+  if (
+    entry.item &&
+    entry.item.name
+  ) {
+    return entry.item.name;
+  }
+
+  if (
+    entry.metadata &&
+    entry.metadata.name
+  ) {
+    return entry.metadata.name;
+  }
+
+  if (
+    entry.network_id
+  ) {
+    return (
+      "Item " +
+      entry.network_id
+    );
+  }
+
+  return "Item";
+}
+
+
+async function loadInventory() {
+
+  const mainGrid =
+    document.getElementById(
+      "mainInventoryGrid"
+    );
+
+  const hotbarGrid =
+    document.getElementById(
+      "hotbarGrid"
+    );
+
+  mainGrid.innerHTML =
+    "";
+
+  hotbarGrid.innerHTML =
+    "";
+
+  if (!authToken) {
+
+    addLog(
+      "[ERROR] Please login first."
+    );
+
+    return;
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        HQBOT_API +
+        "/api/bot/inventory",
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              authToken
+          }
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+
+      addLog(
+        "[INVENTORY] " +
+        (
+          data.error ||
+          "Could not load inventory."
+        )
+      );
+
+      showEmptyInventory(
+        mainGrid,
+        27
+      );
+
+      showEmptyInventory(
+        hotbarGrid,
+        9
+      );
+
+      return;
+    }
+
+    /*
+      MAIN INVENTORY = 9-35
+    */
+
+    const main =
+      Array.isArray(
+        data.mainInventory
+      )
+        ? data.mainInventory
+        : [];
+
+    for (
+      let i = 0;
+      i < 27;
+      i++
+    ) {
+
+      const entry =
+        main[i] || {
+          empty: true
+        };
+
+      const slot =
+        createInventorySlot(
+          entry,
+          9 + i
+        );
+
+      mainGrid.appendChild(
+        slot
+      );
+    }
+
+    /*
+      HOTBAR = 0-8
+
+      Display only.
+    */
+
+    const hotbar =
+      Array.isArray(
+        data.hotbar
+      )
+        ? data.hotbar
+        : [];
+
+    for (
+      let i = 0;
+      i < 9;
+      i++
+    ) {
+
+      const entry =
+        hotbar[i] || {
+          empty: true
+        };
+
+      const slot =
+        createInventorySlot(
+          entry,
+          i
+        );
+
+      slot.classList.add(
+        "hotbarSlot"
+      );
+
+      hotbarGrid.appendChild(
+        slot
+      );
+    }
+
+    addLog(
+      "[INVENTORY] Inventory loaded."
+    );
+
+  } catch (err) {
+
+    addLog(
+      "[INVENTORY] Connection error."
+    );
+
+    showEmptyInventory(
+      mainGrid,
+      27
+    );
+
+    showEmptyInventory(
+      hotbarGrid,
+      9
+    );
+  }
+}
+
+
+function showEmptyInventory(
+  container,
+  amount
+) {
+
+  for (
+    let i = 0;
+    i < amount;
+    i++
+  ) {
+
+    const slot =
+      createInventorySlot(
+        {
+          empty: true
+        },
+        i
+      );
+
+    container.appendChild(
+      slot
+    );
+  }
+}
+
+
+/* =========================================================
+   DROP INVENTORY
+   ========================================================= */
+
+async function dropInventory() {
+
+  if (!authToken) {
+
+    alert(
+      "Please login first."
+    );
+
+    return;
+  }
+
+  const confirmed =
+    confirm(
+      "Drop all items in the main inventory?\n\nYour hotbar will NOT be touched."
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  const button =
+    document.getElementById(
+      "dropInventoryButton"
+    );
+
+  button.disabled =
+    true;
+
+  button.textContent =
+    "Dropping...";
+
+  try {
+
+    const response =
+      await fetch(
+        HQBOT_API +
+        "/api/bot/inventory/drop",
+        {
+          method: "POST",
+
+          headers: {
+            Authorization:
+              "Bearer " +
+              authToken,
+
+            "Content-Type":
+              "application/json"
+          }
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+
+      alert(
+        data.error ||
+        "Could not drop inventory."
+      );
+
+      addLog(
+        "[INVENTORY ERROR] " +
+        (
+          data.error ||
+          "Drop failed."
+        )
+      );
+
+      return;
+    }
+
+    addLog(
+      "[INVENTORY] " +
+      (
+        data.message ||
+        "Main inventory drop requested."
+      )
+    );
+
+    /*
+      Give the server a moment to send
+      inventory updates, then refresh.
+    */
+
+    setTimeout(
+      loadInventory,
+      1000
+    );
+
+  } catch (err) {
+
+    alert(
+      "Could not connect to Hqbot."
+    );
+
+    addLog(
+      "[INVENTORY ERROR] Connection failed."
+    );
+
+  } finally {
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "🗑️ Drop Inventory";
+  }
+}
+
+
+/* =========================================================
    MICROSOFT ACCOUNT
-========================= */
+   ========================================================= */
 
 function openAccountModal() {
 
   document.getElementById(
     "accountModal"
-  ).style.display = "flex";
+  ).style.display =
+    "flex";
 }
 
 
@@ -1316,7 +2242,8 @@ function closeAccountModal() {
 
   document.getElementById(
     "accountModal"
-  ).style.display = "none";
+  ).style.display =
+    "none";
 }
 
 
@@ -1341,24 +2268,28 @@ async function startMicrosoftLogin() {
       "deviceCode"
     );
 
-  button.disabled = true;
+  button.disabled =
+    true;
 
   button.textContent =
     "Starting...";
 
   try {
 
-    const response = await fetch(
-      HQBOT_API + "/api/microsoft/login",
-      {
-        method: "POST",
+    const response =
+      await fetch(
+        HQBOT_API +
+        "/api/microsoft/login",
+        {
+          method: "POST",
 
-        headers: {
-          Authorization:
-            "Bearer " + authToken
+          headers: {
+            Authorization:
+              "Bearer " +
+              authToken
+          }
         }
-      }
-    );
+      );
 
     const data =
       await response.json();
@@ -1370,7 +2301,8 @@ async function startMicrosoftLogin() {
         "Microsoft login could not start."
       );
 
-      button.disabled = false;
+      button.disabled =
+        false;
 
       button.textContent =
         "Sign in with Microsoft";
@@ -1395,7 +2327,8 @@ async function startMicrosoftLogin() {
       "Could not connect to Hqbot."
     );
 
-    button.disabled = false;
+    button.disabled =
+      false;
 
     button.textContent =
       "Sign in with Microsoft";
@@ -1403,9 +2336,9 @@ async function startMicrosoftLogin() {
 }
 
 
-/* =========================
+/* =========================================================
    MICROSOFT LOGIN STATUS
-========================= */
+   ========================================================= */
 
 async function pollMicrosoftLogin(
   sessionId
@@ -1413,17 +2346,19 @@ async function pollMicrosoftLogin(
 
   try {
 
-    const response = await fetch(
-      HQBOT_API +
-      "/api/microsoft/login/" +
-      sessionId,
-      {
-        headers: {
-          Authorization:
-            "Bearer " + authToken
+    const response =
+      await fetch(
+        HQBOT_API +
+        "/api/microsoft/login/" +
+        sessionId,
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              authToken
+          }
         }
-      }
-    );
+      );
 
     const data =
       await response.json();
@@ -1442,11 +2377,16 @@ async function pollMicrosoftLogin(
         "verificationText"
       ).innerHTML =
         "Open: <b>" +
-        data.verificationUri +
+        escapeHtml(
+          data.verificationUri
+        ) +
         "</b>";
     }
 
-    if (data.status === "connected") {
+    if (
+      data.status ===
+      "connected"
+    ) {
 
       addLog(
         "[MICROSOFT] Account connected!"
@@ -1457,10 +2397,15 @@ async function pollMicrosoftLogin(
       ).textContent =
         "Connected ✓";
 
+      refreshBotStatus();
+
       return;
     }
 
-    if (data.status === "error") {
+    if (
+      data.status ===
+      "error"
+    ) {
 
       addLog(
         "[ERROR] " +
@@ -1470,12 +2415,24 @@ async function pollMicrosoftLogin(
         )
       );
 
+      document.getElementById(
+        "startMicrosoftButton"
+      ).disabled =
+        false;
+
+      document.getElementById(
+        "startMicrosoftButton"
+      ).textContent =
+        "Sign in with Microsoft";
+
       return;
     }
 
     setTimeout(
       () =>
-        pollMicrosoftLogin(sessionId),
+        pollMicrosoftLogin(
+          sessionId
+        ),
       2000
     );
 
@@ -1488,9 +2445,9 @@ async function pollMicrosoftLogin(
 }
 
 
-/* =========================
+/* =========================================================
    RESTORE LOGIN
-========================= */
+   ========================================================= */
 
 async function checkLogin() {
 
@@ -1503,15 +2460,18 @@ async function checkLogin() {
 
   try {
 
-    const response = await fetch(
-      HQBOT_API + "/api/auth/me",
-      {
-        headers: {
-          Authorization:
-            "Bearer " + authToken
+    const response =
+      await fetch(
+        HQBOT_API +
+        "/api/auth/me",
+        {
+          headers: {
+            Authorization:
+              "Bearer " +
+              authToken
+          }
         }
-      }
-    );
+      );
 
     if (response.ok) {
 
