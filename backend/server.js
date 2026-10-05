@@ -54,6 +54,9 @@ const SESSIONS_FILE =
 const KEYS_FILE =
   path.join(DATA_DIR, "keys.json");
 
+const SNIPE_AUTH_FILE =
+  path.join(DATA_DIR, "snipe-auth.json");
+
 /* =========================================================
    MICROSOFT AUTH CACHE
    ========================================================= */
@@ -188,8 +191,32 @@ const activationKeys =
 const microsoftSessions =
   new Map();
 
+const microsoftAuthflows =
+  new Map();
+
 const activeBots =
   new Map();
+
+/* =========================================================
+   SNIPE DATA
+   ========================================================= */
+
+let snipeAuthInfo =
+  loadJSON(
+    SNIPE_AUTH_FILE,
+    null
+  );
+
+let snipeRunning = false;
+
+const SNIPE_COOLDOWN =
+  30 * 1000;
+
+const snipeCooldowns =
+  new Map();
+
+const SNIPE_MAX_CHECKS =
+  40;
 
 /* =========================================================
    PASSWORDS
@@ -1727,6 +1754,27 @@ function parseMicrosoftDeviceCode(
 }
 
 /* =========================================================
+   SAVE SNIPE AUTH INFO
+   ========================================================= */
+
+function saveSnipeAuthInfo(
+  username,
+  authId
+) {
+  snipeAuthInfo = {
+    username,
+    authId,
+    savedAt:
+      Date.now()
+  };
+
+  saveJSON(
+    SNIPE_AUTH_FILE,
+    snipeAuthInfo
+  );
+}
+
+/* =========================================================
    START MICROSOFT AUTH
    ========================================================= */
 
@@ -1747,9 +1795,12 @@ async function startMicrosoftAuth(
       }
     );
 
+    const authId =
+      `hqbot-${username}-${sessionId}`;
+
     const auth =
       new Authflow(
-        `hqbot-${username}-${sessionId}`,
+        authId,
         AUTH_CACHE_DIR,
         {
           flow: "live",
@@ -1847,6 +1898,27 @@ async function startMicrosoftAuth(
         }
       );
 
+    /*
+      Keep the authflow available
+      for /snipe.
+    */
+
+    microsoftAuthflows.set(
+      username,
+      auth
+    );
+
+    /*
+      Save enough information so
+      /snipe can reuse the cache
+      after a server restart.
+    */
+
+    saveSnipeAuthInfo(
+      username,
+      authId
+    );
+
     updateMicrosoftSession(
       sessionId,
       {
@@ -1856,13 +1928,6 @@ async function startMicrosoftAuth(
           "Waiting for Microsoft sign-in..."
       }
     );
-
-    /*
-      IMPORTANT:
-      This runs in the background.
-      The HTTP request has already
-      returned the sessionId.
-    */
 
     await auth.getXboxToken();
 
@@ -2166,10 +2231,6 @@ app.post(
     const sessionId =
       crypto.randomUUID();
 
-    /*
-      Create session FIRST.
-    */
-
     microsoftSessions.set(
       sessionId,
       {
@@ -2190,13 +2251,6 @@ app.post(
           null
       }
     );
-
-    /*
-      DO NOT await this.
-
-      Microsoft login waits for the user,
-      so it must run in the background.
-    */
 
     startMicrosoftAuth(
       sessionId,
@@ -2220,10 +2274,6 @@ app.post(
         }
       );
     });
-
-    /*
-      Return immediately.
-    */
 
     res.json({
       success: true,
@@ -2313,6 +2363,219 @@ app.get(
 );
 
 /* =========================================================
+   SNIPE HELPERS
+   ========================================================= */
+
+const SNIPE_CHARACTERS =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+function generateFourCharacterGamertag() {
+  let result = "";
+
+  for (
+    let i = 0;
+    i < 4;
+    i++
+  ) {
+    const index =
+      crypto.randomInt(
+        0,
+        SNIPE_CHARACTERS.length
+      );
+
+    result +=
+      SNIPE_CHARACTERS[index];
+  }
+
+  return result;
+}
+
+/*
+  Get an authenticated Authflow
+  that has already been used by Hqbot.
+*/
+
+async function getSnipeAuthflow() {
+  if (
+    snipeAuthInfo &&
+    snipeAuthInfo.authId
+  ) {
+    const existing =
+      microsoftAuthflows.get(
+        snipeAuthInfo.username
+      );
+
+    if (existing) {
+      return existing;
+    }
+
+    try {
+      const auth =
+        new Authflow(
+          snipeAuthInfo.authId,
+          AUTH_CACHE_DIR,
+          {
+            flow: "live",
+            authTitle:
+              Titles.MinecraftNintendoSwitch,
+            deviceType:
+              "Nintendo"
+          }
+        );
+
+      microsoftAuthflows.set(
+        snipeAuthInfo.username,
+        auth
+      );
+
+      return auth;
+    } catch (error) {
+      console.error(
+        "Could not restore snipe Authflow:",
+        error
+      );
+    }
+  }
+
+  /*
+    If there is no saved snipe account,
+    try any currently authenticated
+    Hqbot account.
+  */
+
+  for (
+    const [
+      username,
+      auth
+    ] of microsoftAuthflows
+  ) {
+    if (auth) {
+      snipeAuthInfo = {
+        username,
+        authId:
+          `existing-${username}`,
+        savedAt:
+          Date.now()
+      };
+
+      return auth;
+    }
+  }
+
+  return null;
+}
+
+/*
+  Check one exact gamertag.
+
+  Returns:
+    taken
+    available
+    unknown
+*/
+
+async function checkXboxGamertag(
+  auth,
+  gamertag
+) {
+  const xboxToken =
+    await auth.getXboxToken();
+
+  if (
+    !xboxToken ||
+    !xboxToken.userHash ||
+    !xboxToken.XSTSToken
+  ) {
+    throw new Error(
+      "Could not obtain Xbox authentication token."
+    );
+  }
+
+  const encoded =
+    encodeURIComponent(
+      gamertag
+    );
+
+  /*
+    Microsoft Xbox profile endpoint.
+
+    gt(NAME) means lookup by
+    exact gamertag.
+  */
+
+  const url =
+    `https://profile.xboxlive.com/users/gt(${encoded})/profile/settings/people/people?settings=Gamertag`;
+
+  const response =
+    await fetch(
+      url,
+      {
+        method: "GET",
+        headers: {
+          "Authorization":
+            `XBL3.0 x=${xboxToken.userHash};${xboxToken.XSTSToken}`,
+          "x-xbl-contract-version":
+            "2",
+          "Content-Type":
+            "application/json",
+          "Accept":
+            "application/json"
+        }
+      }
+    );
+
+  if (
+    response.status ===
+    404
+  ) {
+    return "available";
+  }
+
+  if (
+    response.status ===
+    200
+  ) {
+    return "taken";
+  }
+
+  if (
+    response.status ===
+    401 ||
+    response.status ===
+    403
+  ) {
+    throw new Error(
+      `Xbox authentication rejected the request (${response.status}).`
+    );
+  }
+
+  if (
+    response.status ===
+    429
+  ) {
+    throw new Error(
+      "Xbox rate limit reached. Try /snipe again later."
+    );
+  }
+
+  return "unknown";
+}
+
+/*
+  Small delay between Xbox lookups.
+*/
+
+function sleep(ms) {
+  return new Promise(
+    resolve =>
+      setTimeout(
+        resolve,
+        ms
+      )
+  );
+}
+
+/* =========================================================
    DISCORD
    ========================================================= */
 
@@ -2341,6 +2604,15 @@ const lifetimeCommand =
       "Generate a lifetime Hqbot activation key"
     );
 
+const snipeCommand =
+  new SlashCommandBuilder()
+    .setName(
+      "snipe"
+    )
+    .setDescription(
+      "Find an exact 4-character Xbox gamertag"
+    );
+
 discordClient.once(
   "ready",
   async () => {
@@ -2364,7 +2636,8 @@ discordClient.once(
         {
           body: [
             monthlyCommand.toJSON(),
-            lifetimeCommand.toJSON()
+            lifetimeCommand.toJSON(),
+            snipeCommand.toJSON()
           ]
         }
       );
@@ -2394,6 +2667,10 @@ discordClient.on(
       return;
     }
 
+    /* =====================================================
+       ADMIN CHECK FOR KEY COMMANDS
+       ===================================================== */
+
     if (
       interaction.commandName ===
         "genkeymonthly" ||
@@ -2418,6 +2695,239 @@ discordClient.on(
         );
       }
     }
+
+    /* =====================================================
+       ADMIN CHECK FOR SNIPE
+       ===================================================== */
+
+    if (
+      interaction.commandName ===
+      "snipe"
+    ) {
+      const adminDiscordId =
+        process.env
+          .DISCORD_ADMIN_USER_ID;
+
+      if (
+        adminDiscordId &&
+        interaction.user.id !==
+          adminDiscordId
+      ) {
+        return interaction.reply(
+          {
+            content:
+              "❌ You are not authorized to use /snipe.",
+            ephemeral: true
+          }
+        );
+      }
+
+      /*
+        Prevent two /snipe searches
+        from running at the same time.
+      */
+
+      if (snipeRunning) {
+        return interaction.reply(
+          {
+            content:
+              "⏳ A /snipe search is already running. Wait for it to finish.",
+            ephemeral: true
+          }
+        );
+      }
+
+      /*
+        Cooldown.
+      */
+
+      const lastSnipe =
+        snipeCooldowns.get(
+          interaction.user.id
+        );
+
+      if (
+        lastSnipe &&
+        Date.now() -
+          lastSnipe <
+          SNIPE_COOLDOWN
+      ) {
+        const seconds =
+          Math.ceil(
+            (
+              SNIPE_COOLDOWN -
+              (
+                Date.now() -
+                lastSnipe
+              )
+            ) /
+              1000
+          );
+
+        return interaction.reply(
+          {
+            content:
+              `⏳ Try /snipe again in ${seconds}s.`,
+            ephemeral: true
+          }
+        );
+      }
+
+      snipeCooldowns.set(
+        interaction.user.id,
+        Date.now()
+      );
+
+      snipeRunning = true;
+
+      await interaction.reply(
+        {
+          content:
+            "🔎 **Snipe started.**\nGenerating exact 4-character gamertags and checking Xbox...",
+          ephemeral: true
+        }
+      );
+
+      try {
+        const auth =
+          await getSnipeAuthflow();
+
+        if (!auth) {
+          snipeRunning =
+            false;
+
+          return interaction.editReply(
+            {
+              content:
+                "❌ I don't have a Microsoft/Xbox account available for checking yet.\n\nUse **Hqbot → Add Microsoft Account** once, complete the sign-in, then try `/snipe` again."
+            }
+          );
+        }
+
+        /*
+          Make a set so we never check
+          the same generated name twice
+          during this run.
+        */
+
+        const checked =
+          new Set();
+
+        let found =
+          null;
+
+        let checks =
+          0;
+
+        for (
+          let attempt = 0;
+          attempt <
+          SNIPE_MAX_CHECKS;
+          attempt++
+        ) {
+          let gamertag;
+
+          do {
+            gamertag =
+              generateFourCharacterGamertag();
+          } while (
+            checked.has(
+              gamertag
+            )
+          );
+
+          checked.add(
+            gamertag
+          );
+
+          checks++;
+
+          console.log(
+            `[SNIPE] Checking ${gamertag}`
+          );
+
+          const result =
+            await checkXboxGamertag(
+              auth,
+              gamertag
+            );
+
+          if (
+            result ===
+            "available"
+          ) {
+            found =
+              gamertag;
+
+            break;
+          }
+
+          if (
+            result ===
+            "unknown"
+          ) {
+            console.log(
+              `[SNIPE] Could not determine ${gamertag}`
+            );
+          } else {
+            console.log(
+              `[SNIPE] ${gamertag} is taken`
+            );
+          }
+
+          /*
+            Keep requests spaced out.
+          */
+
+          await sleep(
+            650
+          );
+        }
+
+        snipeRunning =
+          false;
+
+        if (!found) {
+          return interaction.editReply(
+            {
+              content:
+                `❌ I couldn't confirm an unused 4-character gamertag after ${checks} checks.\n\nTry **/snipe** again later.`
+            }
+          );
+        }
+
+        return interaction.editReply(
+          {
+            content:
+              `🎯 **4C GAMERTAG FOUND**\n\n` +
+              `# \`${found}\`\n\n` +
+              `Length: **4 characters**\n` +
+              `Characters: **letters + numbers only**\n` +
+              `Checks: **${checks}**\n\n` +
+              `⚠️ This means Xbox's profile lookup did not find that exact gamertag at the time of checking. It is **not a guaranteed reservation/claim**.`
+          }
+        );
+      } catch (error) {
+        snipeRunning =
+          false;
+
+        console.error(
+          "SNIPE ERROR:",
+          error
+        );
+
+        return interaction.editReply(
+          {
+            content:
+              `❌ **Snipe error**\n\n${error.message || "Could not check Xbox gamertags."}`
+          }
+        );
+      }
+    }
+
+    /* =====================================================
+       MONTHLY KEY
+       ===================================================== */
 
     if (
       interaction.commandName ===
@@ -2463,6 +2973,10 @@ discordClient.on(
         }
       );
     }
+
+    /* =====================================================
+       LIFETIME KEY
+       ===================================================== */
 
     if (
       interaction.commandName ===
@@ -2558,6 +3072,10 @@ app.listen(
 
     console.log(
       `Activation keys loaded: ${activationKeys.size}`
+    );
+
+    console.log(
+      "4-character /snipe command enabled."
     );
   }
 );
