@@ -194,13 +194,6 @@ const activationKeys =
     )
   );
 
-/*
-  Microsoft account connection state.
-
-  IMPORTANT:
-  This is separate from the Minecraft bot state.
-*/
-
 const microsoftAccounts =
   new Map(
     Object.entries(
@@ -1167,7 +1160,8 @@ app.get(
 
     res.json({
       online:
-        !!bot.connected,
+        !!bot.connected &&
+        !!bot.spawned,
       status:
         bot.status ||
         "offline",
@@ -1227,7 +1221,8 @@ app.post(
     if (
       !bot ||
       !bot.client ||
-      !bot.connected
+      !bot.connected ||
+      !bot.spawned
     ) {
       return res
         .status(400)
@@ -1497,7 +1492,8 @@ app.get(
 
     if (
       !bot ||
-      !bot.connected
+      !bot.connected ||
+      !bot.spawned
     ) {
       return res
         .status(400)
@@ -1564,6 +1560,7 @@ app.post(
     if (
       !bot ||
       !bot.connected ||
+      !bot.spawned ||
       !bot.client
     ) {
       return res
@@ -1662,11 +1659,11 @@ app.post(
    ========================================================= */
 
 /*
-  THIS IS THE IMPORTANT FIX.
+  ONE permanent Authflow identity
+  for ONE Hqbot account.
 
-  One Hqbot account gets ONE permanent Authflow ID.
-
-  It no longer changes when the login session changes.
+  The login session ID is NEVER used
+  as the Authflow username.
 */
 
 function getMicrosoftAuthId(
@@ -1752,6 +1749,10 @@ function updateMicrosoftSession(
   return session;
 }
 
+/* =========================================================
+   DEVICE CODE PARSER
+   ========================================================= */
+
 function parseMicrosoftDeviceCode(
   message
 ) {
@@ -1808,29 +1809,25 @@ function parseMicrosoftDeviceCode(
 }
 
 /* =========================================================
-   SAVE SNIPE AUTH
+   MICROSOFT AUTHFLOW CREATION
    ========================================================= */
 
-function saveSnipeAuthInfo(
-  username,
-  authId
-) {
-  snipeAuthInfo = {
-    username,
-    authId,
-    savedAt:
-      Date.now()
-  };
+/*
+  IMPORTANT:
 
-  saveJSON(
-    SNIPE_AUTH_FILE,
-    snipeAuthInfo
-  );
-}
+  Microsoft/Prismarine currently exposes
+  MinecraftNintendoSwitch as the known
+  Bedrock client title.
 
-/* =========================================================
-   CREATE / RESTORE AUTHFLOW
-   ========================================================= */
+  We do NOT pretend that means the user
+  owns a Nintendo Switch.
+
+  The actual Hqbot connection is still
+  a Microsoft/Xbox Bedrock connection.
+
+  Win32 is used as the auth device type
+  instead of Nintendo.
+*/
 
 function createMicrosoftAuthflow(
   username,
@@ -1847,10 +1844,27 @@ function createMicrosoftAuthflow(
       AUTH_CACHE_DIR,
       {
         flow: "live",
+
+        /*
+          This is the known Bedrock title
+          exposed by prismarine-auth.
+        */
         authTitle:
           Titles.MinecraftNintendoSwitch,
+
+        /*
+          Hqbot itself is running as a
+          normal Windows/PC-style client
+          rather than pretending to be
+          a Nintendo device.
+        */
         deviceType:
-          "Nintendo",
+          "Win32",
+
+        /*
+          NEVER force a fresh login unless
+          we explicitly need to.
+        */
         forceRefresh:
           false
       },
@@ -1920,6 +1934,12 @@ function createMicrosoftAuthflow(
           patch.status =
             "waiting_for_login";
 
+          patch.microsoftConnected =
+            false;
+
+          patch.botStatus =
+            "offline";
+
           updateMicrosoftSession(
             sessionId,
             patch
@@ -1955,6 +1975,52 @@ function createMicrosoftAuthflow(
 }
 
 /* =========================================================
+   RESTORE MICROSOFT AUTHFLOW
+   ========================================================= */
+
+function restoreMicrosoftAuthflow(
+  username,
+  authId
+) {
+  const stableId =
+    authId ||
+    getMicrosoftAuthId(
+      username
+    );
+
+  const existing =
+    microsoftAuthflows.get(
+      username
+    );
+
+  if (existing) {
+    return existing;
+  }
+
+  const auth =
+    new Authflow(
+      stableId,
+      AUTH_CACHE_DIR,
+      {
+        flow: "live",
+        authTitle:
+          Titles.MinecraftNintendoSwitch,
+        deviceType:
+          "Win32",
+        forceRefresh:
+          false
+      }
+    );
+
+  microsoftAuthflows.set(
+    username,
+    auth
+  );
+
+  return auth;
+}
+
+/* =========================================================
    START MICROSOFT AUTH
    ========================================================= */
 
@@ -1968,6 +2034,8 @@ async function startMicrosoftAuth(
       {
         status:
           "starting",
+        microsoftConnected:
+          false,
         botStatus:
           "offline",
         message:
@@ -1975,18 +2043,52 @@ async function startMicrosoftAuth(
       }
     );
 
-    const existing =
+    let auth =
       microsoftAuthflows.get(
         username
       );
-
-    let auth =
-      existing;
 
     let authId =
       getMicrosoftAuthId(
         username
       );
+
+    /*
+      Reuse existing Authflow first.
+    */
+
+    if (!auth) {
+      const existingAccount =
+        getMicrosoftAccount(
+          username
+        );
+
+      if (
+        existingAccount &&
+        existingAccount.authId
+      ) {
+        try {
+          auth =
+            restoreMicrosoftAuthflow(
+              username,
+              existingAccount.authId
+            );
+
+          authId =
+            existingAccount.authId;
+        } catch (error) {
+          console.error(
+            "Could not restore saved Authflow:",
+            error
+          );
+        }
+      }
+    }
+
+    /*
+      If there is no Authflow yet,
+      create the permanent one.
+    */
 
     if (!auth) {
       const created =
@@ -2002,17 +2104,13 @@ async function startMicrosoftAuth(
         created.authId;
     }
 
-    /*
-      Save the stable account ID.
-    */
-
     setMicrosoftAccount(
       username,
       {
         authId,
-        connected: false,
         status:
-          "authenticating"
+          "authenticating",
+        connected: false
       }
     );
 
@@ -2031,10 +2129,9 @@ async function startMicrosoftAuth(
       }
     );
 
-    /*
-      THIS is the actual Microsoft/Xbox
-      authentication check.
-    */
+    /* =====================================================
+       ACTUAL MICROSOFT/XBOX AUTH
+       ===================================================== */
 
     const xboxToken =
       await auth.getXboxToken();
@@ -2050,9 +2147,8 @@ async function startMicrosoftAuth(
     }
 
     /*
-      IMPORTANT:
-      Microsoft/Xbox is now CONNECTED,
-      regardless of Minecraft server state.
+      Microsoft/Xbox authentication
+      succeeded.
     */
 
     setMicrosoftAccount(
@@ -2092,7 +2188,7 @@ async function startMicrosoftAuth(
     );
 
     /* =====================================================
-       MINECRAFT SERVER CONNECTION
+       MINECRAFT SERVER SETTINGS
        ===================================================== */
 
     const host =
@@ -2104,16 +2200,9 @@ async function startMicrosoftAuth(
           19132
       );
 
-    /*
-      Microsoft login is already successful.
-
-      If LBSG_HOST isn't configured, DON'T
-      mark Microsoft as disconnected.
-    */
-
     if (!host) {
       console.log(
-        `[${username}] Microsoft account is connected, but LBSG_HOST is not configured.`
+        `[${username}] Microsoft connected but LBSG_HOST is not configured.`
       );
 
       updateMicrosoftSession(
@@ -2179,21 +2268,36 @@ async function startMicrosoftAuth(
       bedrock.createClient({
         host,
         port,
+
+        /*
+          Reuse the same authenticated
+          Prismarine Authflow.
+        */
         authflow: auth,
+
+        /*
+          Microsoft/Xbox online mode.
+        */
         offline: false
       });
 
     const bot = {
       client,
       username,
+
+      /*
+        Do NOT mark online yet.
+      */
       connected: false,
       spawned: false,
       status:
         "connecting",
+
       health: null,
       hunger: null,
       position: null,
       world: null,
+
       inventory:
         Array(36).fill(
           null
@@ -2218,7 +2322,7 @@ async function startMicrosoftAuth(
       "connect",
       () => {
         console.log(
-          `Bot connected for ${username}`
+          `[${username}] Minecraft transport connected.`
         );
 
         bot.connected =
@@ -2251,11 +2355,25 @@ async function startMicrosoftAuth(
       "join",
       () => {
         console.log(
-          `Bot joined for ${username}`
+          `[${username}] Minecraft bot joined.`
         );
 
         bot.status =
           "joined";
+
+        updateMicrosoftSession(
+          sessionId,
+          {
+            status:
+              "authenticated",
+            microsoftConnected:
+              true,
+            botStatus:
+              "joining",
+            message:
+              "Minecraft bot authenticated and joining..."
+          }
+        );
       }
     );
 
@@ -2267,8 +2385,12 @@ async function startMicrosoftAuth(
       "spawn",
       () => {
         console.log(
-          `Bot spawned for ${username}`
+          `[${username}] Minecraft bot SPAWNED.`
         );
+
+        /*
+          THIS is the real ONLINE state.
+        */
 
         bot.connected =
           true;
@@ -2290,6 +2412,19 @@ async function startMicrosoftAuth(
               "online",
             message:
               "Microsoft/Xbox account connected successfully. Bot is online."
+          }
+        );
+
+        setMicrosoftAccount(
+          username,
+          {
+            connected: true,
+            status:
+              "connected",
+            botOnline:
+              true,
+            botOnlineAt:
+              Date.now()
           }
         );
       }
@@ -2317,17 +2452,25 @@ async function startMicrosoftAuth(
       "error",
       error => {
         console.error(
-          `Bot error for ${username}:`,
+          `[${username}] Minecraft BOT ERROR:`,
           error
         );
+
+        bot.connected =
+          false;
+
+        bot.spawned =
+          false;
 
         bot.status =
           "error";
 
         /*
           IMPORTANT:
-          Bot error does NOT mean
-          Microsoft account is disconnected.
+
+          Minecraft server error does NOT
+          automatically mean Microsoft
+          authentication failed.
         */
 
         updateMicrosoftSession(
@@ -2340,7 +2483,24 @@ async function startMicrosoftAuth(
             botStatus:
               "offline",
             message:
-              "Microsoft/Xbox account is connected, but the Minecraft bot could not connect."
+              `Microsoft/Xbox account is connected, but Minecraft bot failed: ${
+                error.message ||
+                "Unknown Minecraft error."
+              }`
+          }
+        );
+
+        setMicrosoftAccount(
+          username,
+          {
+            connected: true,
+            status:
+              "connected",
+            botOnline:
+              false,
+            lastBotError:
+              error.message ||
+              "Unknown Minecraft error."
           }
         );
       }
@@ -2354,7 +2514,7 @@ async function startMicrosoftAuth(
       "close",
       () => {
         console.log(
-          `Bot closed for ${username}`
+          `[${username}] Minecraft bot connection closed.`
         );
 
         bot.connected =
@@ -2365,11 +2525,6 @@ async function startMicrosoftAuth(
 
         bot.status =
           "offline";
-
-        /*
-          Again:
-          Minecraft disconnect != Microsoft disconnect.
-        */
 
         updateMicrosoftSession(
           sessionId,
@@ -2384,6 +2539,17 @@ async function startMicrosoftAuth(
               "Microsoft/Xbox account is still connected. Minecraft bot is offline."
           }
         );
+
+        setMicrosoftAccount(
+          username,
+          {
+            connected: true,
+            status:
+              "connected",
+            botOnline:
+              false
+          }
+        );
       }
     );
   } catch (error) {
@@ -2391,15 +2557,6 @@ async function startMicrosoftAuth(
       `MICROSOFT AUTH ERROR for ${username}:`,
       error
     );
-
-    /*
-      Only mark Microsoft disconnected
-      if authentication itself failed.
-
-      Do NOT destroy a valid cached
-      Microsoft account because the
-      Minecraft server failed.
-    */
 
     const current =
       getMicrosoftAccount(
@@ -2411,6 +2568,15 @@ async function startMicrosoftAuth(
         current &&
         current.connected
       );
+
+    /*
+      Only call Microsoft disconnected
+      if Microsoft authentication itself
+      failed.
+
+      A Minecraft server failure should
+      not erase a valid Microsoft account.
+    */
 
     updateMicrosoftSession(
       sessionId,
@@ -2440,7 +2606,12 @@ async function startMicrosoftAuth(
           connected:
             false,
           status:
-            "error"
+            "error",
+          botOnline:
+            false,
+          lastError:
+            error.message ||
+            "Microsoft sign-in failed."
         }
       );
     }
@@ -2584,6 +2755,15 @@ app.get(
         !!(
           account &&
           account.connected
+        ),
+      botOnline:
+        !!(
+          getBotForUser(
+            username
+          )?.connected &&
+          getBotForUser(
+            username
+          )?.spawned
         )
     });
   }
@@ -2606,7 +2786,7 @@ app.get(
       return;
     }
 
-    const account =
+    let account =
       getMicrosoftAccount(
         user.username
       );
@@ -2617,69 +2797,33 @@ app.get(
         status:
           "not_connected",
         username:
-          user.username
+          user.username,
+        botOnline: false
       });
     }
 
     /*
-      Check whether the Authflow
-      can still obtain an Xbox token.
+      Restore Authflow from the
+      persistent cache if the current
+      Node process doesn't have it.
     */
 
-    const auth =
+    let auth =
       microsoftAuthflows.get(
         user.username
       );
 
     if (!auth) {
-      /*
-        Try restoring from the
-        stable cache.
-      */
-
       try {
-        const restored =
-          new Authflow(
-            account.authId ||
-              getMicrosoftAuthId(
-                user.username
-              ),
-            AUTH_CACHE_DIR,
-            {
-              flow: "live",
-              authTitle:
-                Titles.MinecraftNintendoSwitch,
-              deviceType:
-                "Nintendo",
-              forceRefresh:
-                false
-            }
+        auth =
+          restoreMicrosoftAuthflow(
+            user.username,
+            account.authId
           );
 
-        microsoftAuthflows.set(
-          user.username,
-          restored
+        console.log(
+          `[${user.username}] Microsoft Authflow restored from persistent cache.`
         );
-
-        return res.json({
-          connected:
-            !!account.connected,
-          status:
-            account.connected
-              ? "connected"
-              : "not_connected",
-          username:
-            user.username,
-          connectedAt:
-            account.connectedAt ||
-            null,
-          botOnline:
-            !!(
-              getBotForUser(
-                user.username
-              )?.connected
-            )
-        });
       } catch (error) {
         console.error(
           "Could not restore Microsoft Authflow:",
@@ -2687,6 +2831,11 @@ app.get(
         );
       }
     }
+
+    const bot =
+      getBotForUser(
+        user.username
+      );
 
     res.json({
       connected:
@@ -2702,10 +2851,13 @@ app.get(
         null,
       botOnline:
         !!(
-          getBotForUser(
-            user.username
-          )?.connected
-        )
+          bot &&
+          bot.connected &&
+          bot.spawned
+        ),
+      botStatus:
+        bot?.status ||
+        "offline"
     });
   }
 );
@@ -2770,21 +2922,9 @@ async function getSnipeAuthflow() {
     ) {
       try {
         auth =
-          new Authflow(
-            account.authId ||
-              getMicrosoftAuthId(
-                username
-              ),
-            AUTH_CACHE_DIR,
-            {
-              flow: "live",
-              authTitle:
-                Titles.MinecraftNintendoSwitch,
-              deviceType:
-                "Nintendo",
-              forceRefresh:
-                false
-            }
+          restoreMicrosoftAuthflow(
+            username,
+            account.authId
           );
 
         microsoftAuthflows.set(
@@ -2825,21 +2965,9 @@ async function getSnipeAuthflow() {
       if (!auth) {
         try {
           auth =
-            new Authflow(
-              account.authId ||
-                getMicrosoftAuthId(
-                  username
-                ),
-              AUTH_CACHE_DIR,
-              {
-                flow: "live",
-                authTitle:
-                  Titles.MinecraftNintendoSwitch,
-                deviceType:
-                  "Nintendo",
-                forceRefresh:
-                  false
-              }
+            restoreMicrosoftAuthflow(
+              username,
+              account.authId
             );
 
           microsoftAuthflows.set(
@@ -2887,10 +3015,6 @@ async function checkXboxGamertag(
     encodeURIComponent(
       gamertag
     );
-
-  /*
-    Exact Xbox gamertag lookup.
-  */
 
   const url =
     `https://profile.xboxlive.com/users/gt(${encoded})/profile/settings?settings=Gamertag`;
@@ -3051,7 +3175,7 @@ discordClient.on(
     }
 
     /* =====================================================
-       KEY COMMANDS
+       KEY COMMAND AUTH
        ===================================================== */
 
     if (
@@ -3270,7 +3394,10 @@ discordClient.on(
         return interaction.editReply(
           {
             content:
-              `❌ **Snipe error**\n\n${error.message || "Could not check Xbox gamertags."}`
+              `❌ **Snipe error**\n\n${
+                error.message ||
+                "Could not check Xbox gamertags."
+              }`
           }
         );
       }
@@ -3418,6 +3545,10 @@ app.listen(
     );
 
     console.log(
+      `Auth cache directory: ${AUTH_CACHE_DIR}`
+    );
+
+    console.log(
       `Users loaded: ${users.size}`
     );
 
@@ -3430,7 +3561,15 @@ app.listen(
     );
 
     console.log(
-      "Microsoft/Xbox persistent authentication enabled."
+      "Persistent Microsoft/Xbox Authflow enabled."
+    );
+
+    console.log(
+      "Microsoft authentication and Minecraft bot status are separated."
+    );
+
+    console.log(
+      "Bot becomes ONLINE only after spawn."
     );
 
     console.log(
@@ -3438,3 +3577,32 @@ app.listen(
     );
   }
 );
+
+Then do exactly this
+
+1. Open Railway → your Hqbot service → "server.js".
+2. Delete the old "server.js" completely.
+3. Paste the full code above.
+4. Save.
+5. Deploy/redeploy.
+6. Don't create another Hqbot account.
+7. Open Hqbot.
+8. Log into your existing account.
+9. Go to Add Microsoft Account.
+10. Complete the Microsoft sign-in.
+
+One important thing, Jan
+
+If Microsoft's page still literally says “Minecraft for Nintendo Switch”, that does not mean Hqbot is making your account a Nintendo account. The current Prismarine library exposes "MinecraftNintendoSwitch" as its known Bedrock title, and its documentation explicitly describes "deviceType" separately from the title.
+
+The part I've changed is the actual auth device type from:
+
+deviceType: "Nintendo"
+
+to:
+
+deviceType: "Win32"
+
+and the Hqbot connection is now considered ONLINE only after Minecraft's "spawn" event, rather than immediately after Microsoft authentication.
+
+So the next test is simple: after deployment, use Add Microsoft Account once and tell me exactly what Hqbot shows after you finish the Microsoft page — Microsoft connected, Bot online, or Bot offline/error.
