@@ -54,6 +54,12 @@ const SESSIONS_FILE =
 const KEYS_FILE =
   path.join(DATA_DIR, "keys.json");
 
+const MICROSOFT_ACCOUNTS_FILE =
+  path.join(
+    DATA_DIR,
+    "microsoft-accounts.json"
+  );
+
 const SNIPE_AUTH_FILE =
   path.join(DATA_DIR, "snipe-auth.json");
 
@@ -188,6 +194,23 @@ const activationKeys =
     )
   );
 
+/*
+  Microsoft account connection state.
+
+  IMPORTANT:
+  This is separate from the Minecraft bot state.
+*/
+
+const microsoftAccounts =
+  new Map(
+    Object.entries(
+      loadJSON(
+        MICROSOFT_ACCOUNTS_FILE,
+        {}
+      )
+    )
+  );
+
 const microsoftSessions =
   new Map();
 
@@ -286,17 +309,13 @@ function verifyPassword(
    NORMALIZATION
    ========================================================= */
 
-function normalizeActivationKey(
-  value
-) {
+function normalizeActivationKey(value) {
   return String(value || "")
     .trim()
     .toUpperCase();
 }
 
-function normalizeUsername(
-  value
-) {
+function normalizeUsername(value) {
   return String(value || "")
     .trim();
 }
@@ -314,9 +333,7 @@ function saveSessions() {
   );
 }
 
-function createLoginToken(
-  username
-) {
+function createLoginToken(username) {
   const token =
     crypto
       .randomBytes(48)
@@ -985,10 +1002,6 @@ function checkAdmin(
   return true;
 }
 
-/* =========================================================
-   ADMIN GENERATE KEY
-   ========================================================= */
-
 function generateActivationKey() {
   return (
     "HQ-" +
@@ -1073,10 +1086,6 @@ app.post(
   }
 );
 
-/* =========================================================
-   ADMIN KEY STATUS
-   ========================================================= */
-
 app.get(
   "/api/admin/key-status",
   (req, res) => {
@@ -1116,9 +1125,7 @@ app.get(
    BOT HELPERS
    ========================================================= */
 
-function getBotForUser(
-  username
-) {
+function getBotForUser(username) {
   return activeBots.get(
     username
   );
@@ -1282,12 +1289,10 @@ app.post(
 );
 
 /* =========================================================
-   INVENTORY HELPERS
+   INVENTORY
    ========================================================= */
 
-function isNonEmptyItem(
-  item
-) {
+function isNonEmptyItem(item) {
   if (!item) {
     return false;
   }
@@ -1320,9 +1325,7 @@ function isNonEmptyItem(
   return false;
 }
 
-function getItemCount(
-  item
-) {
+function getItemCount(item) {
   if (!item) {
     return 0;
   }
@@ -1344,9 +1347,7 @@ function getItemCount(
   return 1;
 }
 
-function getItemStackId(
-  item
-) {
+function getItemStackId(item) {
   if (!item) {
     return null;
   }
@@ -1393,10 +1394,6 @@ function normalizeInventoryItem(
       )
   };
 }
-
-/* =========================================================
-   INVENTORY LISTENERS
-   ========================================================= */
 
 function attachInventoryListeners(
   username,
@@ -1480,10 +1477,6 @@ function attachInventoryListeners(
   );
 }
 
-/* =========================================================
-   GET INVENTORY
-   ========================================================= */
-
 app.get(
   "/api/bot/inventory",
   (req, res) => {
@@ -1549,10 +1542,6 @@ app.get(
     });
   }
 );
-
-/* =========================================================
-   DROP INVENTORY ITEM
-   ========================================================= */
 
 app.post(
   "/api/bot/inventory/drop",
@@ -1672,6 +1661,71 @@ app.post(
    MICROSOFT HELPERS
    ========================================================= */
 
+/*
+  THIS IS THE IMPORTANT FIX.
+
+  One Hqbot account gets ONE permanent Authflow ID.
+
+  It no longer changes when the login session changes.
+*/
+
+function getMicrosoftAuthId(
+  username
+) {
+  return (
+    "hqbot-account-" +
+    username
+  );
+}
+
+function saveMicrosoftAccounts() {
+  return saveJSON(
+    MICROSOFT_ACCOUNTS_FILE,
+    Object.fromEntries(
+      microsoftAccounts
+    )
+  );
+}
+
+function getMicrosoftAccount(
+  username
+) {
+  return (
+    microsoftAccounts.get(
+      username
+    ) || null
+  );
+}
+
+function setMicrosoftAccount(
+  username,
+  patch
+) {
+  const existing =
+    microsoftAccounts.get(
+      username
+    ) || {
+      username
+    };
+
+  const updated = {
+    ...existing,
+    ...patch,
+    username,
+    updatedAt:
+      Date.now()
+  };
+
+  microsoftAccounts.set(
+    username,
+    updated
+  );
+
+  saveMicrosoftAccounts();
+
+  return updated;
+}
+
 function updateMicrosoftSession(
   sessionId,
   patch
@@ -1754,7 +1808,7 @@ function parseMicrosoftDeviceCode(
 }
 
 /* =========================================================
-   SAVE SNIPE AUTH INFO
+   SAVE SNIPE AUTH
    ========================================================= */
 
 function saveSnipeAuthInfo(
@@ -1772,6 +1826,132 @@ function saveSnipeAuthInfo(
     SNIPE_AUTH_FILE,
     snipeAuthInfo
   );
+}
+
+/* =========================================================
+   CREATE / RESTORE AUTHFLOW
+   ========================================================= */
+
+function createMicrosoftAuthflow(
+  username,
+  sessionId
+) {
+  const authId =
+    getMicrosoftAuthId(
+      username
+    );
+
+  const auth =
+    new Authflow(
+      authId,
+      AUTH_CACHE_DIR,
+      {
+        flow: "live",
+        authTitle:
+          Titles.MinecraftNintendoSwitch,
+        deviceType:
+          "Nintendo",
+        forceRefresh:
+          false
+      },
+      deviceCode => {
+        try {
+          const patch =
+            {};
+
+          if (
+            deviceCode &&
+            typeof deviceCode ===
+              "object"
+          ) {
+            patch.user_code =
+              deviceCode.user_code ||
+              null;
+
+            patch.verification_uri =
+              deviceCode.verification_uri ||
+              deviceCode.verification_uri_complete ||
+              null;
+
+            patch.message =
+              deviceCode.message ||
+              "Enter the displayed code on Microsoft's website.";
+
+            if (
+              deviceCode.expires_in
+            ) {
+              patch.expiresAt =
+                Date.now() +
+                Number(
+                  deviceCode.expires_in
+                ) *
+                  1000;
+            }
+          } else {
+            const text =
+              String(
+                deviceCode ||
+                  ""
+              );
+
+            const parsed =
+              parseMicrosoftDeviceCode(
+                text
+              );
+
+            patch.message =
+              text;
+
+            if (
+              parsed.user_code
+            ) {
+              patch.user_code =
+                parsed.user_code;
+            }
+
+            if (
+              parsed.verification_uri
+            ) {
+              patch.verification_uri =
+                parsed.verification_uri;
+            }
+          }
+
+          patch.status =
+            "waiting_for_login";
+
+          updateMicrosoftSession(
+            sessionId,
+            patch
+          );
+
+          console.log(
+            `[${username}] Microsoft device code:`,
+            patch.user_code
+          );
+
+          console.log(
+            `[${username}] Microsoft URL:`,
+            patch.verification_uri
+          );
+        } catch (error) {
+          console.error(
+            "Microsoft device callback error:",
+            error
+          );
+        }
+      }
+    );
+
+  microsoftAuthflows.set(
+    username,
+    auth
+  );
+
+  return {
+    auth,
+    authId
+  };
 }
 
 /* =========================================================
@@ -1795,124 +1975,46 @@ async function startMicrosoftAuth(
       }
     );
 
-    const authId =
-      `hqbot-${username}-${sessionId}`;
-
-    const auth =
-      new Authflow(
-        authId,
-        AUTH_CACHE_DIR,
-        {
-          flow: "live",
-          authTitle:
-            Titles.MinecraftNintendoSwitch,
-          deviceType:
-            "Nintendo"
-        },
-        deviceCode => {
-          try {
-            const patch =
-              {};
-
-            if (
-              deviceCode &&
-              typeof deviceCode ===
-                "object"
-            ) {
-              patch.user_code =
-                deviceCode.user_code ||
-                null;
-
-              patch.verification_uri =
-                deviceCode.verification_uri ||
-                deviceCode.verification_uri_complete ||
-                null;
-
-              patch.message =
-                deviceCode.message ||
-                "Enter the displayed code on Microsoft's website.";
-
-              if (
-                deviceCode.expires_in
-              ) {
-                patch.expiresAt =
-                  Date.now() +
-                  Number(
-                    deviceCode.expires_in
-                  ) *
-                    1000;
-              }
-            } else {
-              const text =
-                String(
-                  deviceCode ||
-                    ""
-                );
-
-              const parsed =
-                parseMicrosoftDeviceCode(
-                  text
-                );
-
-              patch.message =
-                text;
-
-              if (
-                parsed.user_code
-              ) {
-                patch.user_code =
-                  parsed.user_code;
-              }
-
-              if (
-                parsed.verification_uri
-              ) {
-                patch.verification_uri =
-                  parsed.verification_uri;
-              }
-            }
-
-            patch.status =
-              "waiting_for_login";
-
-            updateMicrosoftSession(
-              sessionId,
-              patch
-            );
-
-            console.log(
-              `[${username}] Microsoft device code:`,
-              patch.user_code
-            );
-
-            console.log(
-              `[${username}] Microsoft URL:`,
-              patch.verification_uri
-            );
-          } catch (error) {
-            console.error(
-              "Microsoft device-code callback error:",
-              error
-            );
-          }
-        }
+    const existing =
+      microsoftAuthflows.get(
+        username
       );
 
+    let auth =
+      existing;
+
+    let authId =
+      getMicrosoftAuthId(
+        username
+      );
+
+    if (!auth) {
+      const created =
+        createMicrosoftAuthflow(
+          username,
+          sessionId
+        );
+
+      auth =
+        created.auth;
+
+      authId =
+        created.authId;
+    }
+
     /*
-      Keep the authflow available
-      for /snipe.
+      Save the stable account ID.
     */
 
-    microsoftAuthflows.set(
+    setMicrosoftAccount(
       username,
-      auth
+      {
+        authId,
+        connected: false,
+        status:
+          "authenticating"
+      }
     );
-
-    /*
-      Save enough information so
-      /snipe can reuse the cache
-      after a server restart.
-    */
 
     saveSnipeAuthInfo(
       username,
@@ -1929,26 +2031,68 @@ async function startMicrosoftAuth(
       }
     );
 
-    await auth.getXboxToken();
+    /*
+      THIS is the actual Microsoft/Xbox
+      authentication check.
+    */
+
+    const xboxToken =
+      await auth.getXboxToken();
+
+    if (
+      !xboxToken ||
+      !xboxToken.userHash ||
+      !xboxToken.XSTSToken
+    ) {
+      throw new Error(
+        "Microsoft sign-in finished, but Xbox authentication token was not returned."
+      );
+    }
+
+    /*
+      IMPORTANT:
+      Microsoft/Xbox is now CONNECTED,
+      regardless of Minecraft server state.
+    */
+
+    setMicrosoftAccount(
+      username,
+      {
+        authId,
+        connected: true,
+        status:
+          "connected",
+        connectedAt:
+          Date.now(),
+        xuid:
+          xboxToken.userXUID ||
+          null,
+        userHash:
+          xboxToken.userHash ||
+          null
+      }
+    );
 
     updateMicrosoftSession(
       sessionId,
       {
         status:
           "authenticated",
+        microsoftConnected:
+          true,
         botStatus:
-          "connecting",
+          "offline",
         message:
-          "Microsoft account authenticated. Connecting bot..."
+          "Microsoft/Xbox account connected successfully."
       }
     );
 
     console.log(
-      `[${username}] Microsoft/Xbox authentication successful.`
+      `[${username}] Microsoft/Xbox authentication SUCCESS.`
     );
 
     /* =====================================================
-       BEDROCK SERVER
+       MINECRAFT SERVER CONNECTION
        ===================================================== */
 
     const host =
@@ -1960,10 +2104,33 @@ async function startMicrosoftAuth(
           19132
       );
 
+    /*
+      Microsoft login is already successful.
+
+      If LBSG_HOST isn't configured, DON'T
+      mark Microsoft as disconnected.
+    */
+
     if (!host) {
-      throw new Error(
-        "LBSG_HOST is not configured."
+      console.log(
+        `[${username}] Microsoft account is connected, but LBSG_HOST is not configured.`
       );
+
+      updateMicrosoftSession(
+        sessionId,
+        {
+          status:
+            "authenticated",
+          microsoftConnected:
+            true,
+          botStatus:
+            "offline",
+          message:
+            "Microsoft/Xbox account connected. Minecraft server is not configured."
+        }
+      );
+
+      return;
     }
 
     /* =====================================================
@@ -1982,13 +2149,27 @@ async function startMicrosoftAuth(
       try {
         oldBot.client.disconnect();
       } catch {
-        // Ignore disconnect errors.
+        // Ignore.
       }
 
       activeBots.delete(
         username
       );
     }
+
+    updateMicrosoftSession(
+      sessionId,
+      {
+        status:
+          "authenticated",
+        microsoftConnected:
+          true,
+        botStatus:
+          "connecting",
+        message:
+          "Microsoft/Xbox connected. Connecting Minecraft bot..."
+      }
+    );
 
     /* =====================================================
        CREATE BEDROCK CLIENT
@@ -2050,11 +2231,13 @@ async function startMicrosoftAuth(
           sessionId,
           {
             status:
-              "connecting",
+              "authenticated",
+            microsoftConnected:
+              true,
             botStatus:
               "connecting",
             message:
-              "Microsoft account connected. Joining server..."
+              "Microsoft/Xbox connected. Minecraft bot joining server..."
           }
         );
       }
@@ -2101,10 +2284,12 @@ async function startMicrosoftAuth(
           {
             status:
               "connected",
+            microsoftConnected:
+              true,
             botStatus:
               "online",
             message:
-              "Microsoft account connected successfully. Bot is online."
+              "Microsoft/Xbox account connected successfully. Bot is online."
           }
         );
       }
@@ -2139,16 +2324,23 @@ async function startMicrosoftAuth(
         bot.status =
           "error";
 
+        /*
+          IMPORTANT:
+          Bot error does NOT mean
+          Microsoft account is disconnected.
+        */
+
         updateMicrosoftSession(
           sessionId,
           {
             status:
-              "error",
+              "authenticated",
+            microsoftConnected:
+              true,
             botStatus:
               "offline",
             message:
-              error.message ||
-              "Minecraft bot connection failed."
+              "Microsoft/Xbox account is connected, but the Minecraft bot could not connect."
           }
         );
       }
@@ -2174,15 +2366,22 @@ async function startMicrosoftAuth(
         bot.status =
           "offline";
 
+        /*
+          Again:
+          Minecraft disconnect != Microsoft disconnect.
+        */
+
         updateMicrosoftSession(
           sessionId,
           {
             status:
-              "disconnected",
+              "authenticated",
+            microsoftConnected:
+              true,
             botStatus:
               "offline",
             message:
-              "Minecraft bot disconnected."
+              "Microsoft/Xbox account is still connected. Minecraft bot is offline."
           }
         );
       }
@@ -2193,11 +2392,35 @@ async function startMicrosoftAuth(
       error
     );
 
+    /*
+      Only mark Microsoft disconnected
+      if authentication itself failed.
+
+      Do NOT destroy a valid cached
+      Microsoft account because the
+      Minecraft server failed.
+    */
+
+    const current =
+      getMicrosoftAccount(
+        username
+      );
+
+    const microsoftWasConnected =
+      !!(
+        current &&
+        current.connected
+      );
+
     updateMicrosoftSession(
       sessionId,
       {
         status:
-          "error",
+          microsoftWasConnected
+            ? "authenticated"
+            : "error",
+        microsoftConnected:
+          microsoftWasConnected,
         botStatus:
           "offline",
         message:
@@ -2205,6 +2428,22 @@ async function startMicrosoftAuth(
           "Microsoft sign-in failed."
       }
     );
+
+    if (!microsoftWasConnected) {
+      setMicrosoftAccount(
+        username,
+        {
+          authId:
+            getMicrosoftAuthId(
+              username
+            ),
+          connected:
+            false,
+          status:
+            "error"
+        }
+      );
+    }
   }
 }
 
@@ -2237,6 +2476,8 @@ app.post(
         username,
         status:
           "starting",
+        microsoftConnected:
+          false,
         botStatus:
           "offline",
         createdAt:
@@ -2266,6 +2507,8 @@ app.post(
         {
           status:
             "error",
+          microsoftConnected:
+            false,
           botStatus:
             "offline",
           message:
@@ -2329,35 +2572,140 @@ app.get(
         });
     }
 
-    if (
-      session.expiresAt &&
-      Date.now() >
-        session.expiresAt &&
-      ![
-        "connected",
-        "authenticated"
-      ].includes(
-        session.status
-      )
-    ) {
-      session.status =
-        "expired";
-
-      session.botStatus =
-        "offline";
-
-      session.message =
-        "Microsoft sign-in code expired.";
-
-      microsoftSessions.set(
-        req.params.sessionId,
-        session
+    const account =
+      getMicrosoftAccount(
+        username
       );
-    }
 
     res.json({
       success: true,
-      ...session
+      ...session,
+      microsoftConnected:
+        !!(
+          account &&
+          account.connected
+        )
+    });
+  }
+);
+
+/* =========================================================
+   REAL MICROSOFT ACCOUNT STATUS
+   ========================================================= */
+
+app.get(
+  "/api/microsoft/account",
+  (req, res) => {
+    const user =
+      requireActivePlan(
+        req,
+        res
+      );
+
+    if (!user) {
+      return;
+    }
+
+    const account =
+      getMicrosoftAccount(
+        user.username
+      );
+
+    if (!account) {
+      return res.json({
+        connected: false,
+        status:
+          "not_connected",
+        username:
+          user.username
+      });
+    }
+
+    /*
+      Check whether the Authflow
+      can still obtain an Xbox token.
+    */
+
+    const auth =
+      microsoftAuthflows.get(
+        user.username
+      );
+
+    if (!auth) {
+      /*
+        Try restoring from the
+        stable cache.
+      */
+
+      try {
+        const restored =
+          new Authflow(
+            account.authId ||
+              getMicrosoftAuthId(
+                user.username
+              ),
+            AUTH_CACHE_DIR,
+            {
+              flow: "live",
+              authTitle:
+                Titles.MinecraftNintendoSwitch,
+              deviceType:
+                "Nintendo",
+              forceRefresh:
+                false
+            }
+          );
+
+        microsoftAuthflows.set(
+          user.username,
+          restored
+        );
+
+        return res.json({
+          connected:
+            !!account.connected,
+          status:
+            account.connected
+              ? "connected"
+              : "not_connected",
+          username:
+            user.username,
+          connectedAt:
+            account.connectedAt ||
+            null,
+          botOnline:
+            !!(
+              getBotForUser(
+                user.username
+              )?.connected
+            )
+        });
+      } catch (error) {
+        console.error(
+          "Could not restore Microsoft Authflow:",
+          error
+        );
+      }
+    }
+
+    res.json({
+      connected:
+        !!account.connected,
+      status:
+        account.connected
+          ? "connected"
+          : "not_connected",
+      username:
+        user.username,
+      connectedAt:
+        account.connectedAt ||
+        null,
+      botOnline:
+        !!(
+          getBotForUser(
+            user.username
+          )?.connected
+        )
     });
   }
 );
@@ -2390,73 +2738,126 @@ function generateFourCharacterGamertag() {
   return result;
 }
 
-/*
-  Get an authenticated Authflow
-  that has already been used by Hqbot.
-*/
-
 async function getSnipeAuthflow() {
+  /*
+    First use the saved Hqbot account.
+  */
+
   if (
     snipeAuthInfo &&
-    snipeAuthInfo.authId
+    snipeAuthInfo.username
   ) {
-    const existing =
+    const username =
+      snipeAuthInfo.username;
+
+    let auth =
       microsoftAuthflows.get(
-        snipeAuthInfo.username
+        username
       );
 
-    if (existing) {
-      return existing;
+    if (auth) {
+      return auth;
     }
 
-    try {
-      const auth =
-        new Authflow(
-          snipeAuthInfo.authId,
-          AUTH_CACHE_DIR,
-          {
-            flow: "live",
-            authTitle:
-              Titles.MinecraftNintendoSwitch,
-            deviceType:
-              "Nintendo"
-          }
+    const account =
+      getMicrosoftAccount(
+        username
+      );
+
+    if (
+      account &&
+      account.connected
+    ) {
+      try {
+        auth =
+          new Authflow(
+            account.authId ||
+              getMicrosoftAuthId(
+                username
+              ),
+            AUTH_CACHE_DIR,
+            {
+              flow: "live",
+              authTitle:
+                Titles.MinecraftNintendoSwitch,
+              deviceType:
+                "Nintendo",
+              forceRefresh:
+                false
+            }
+          );
+
+        microsoftAuthflows.set(
+          username,
+          auth
         );
 
-      microsoftAuthflows.set(
-        snipeAuthInfo.username,
-        auth
-      );
-
-      return auth;
-    } catch (error) {
-      console.error(
-        "Could not restore snipe Authflow:",
-        error
-      );
+        return auth;
+      } catch (error) {
+        console.error(
+          "Could not restore snipe Authflow:",
+          error
+        );
+      }
     }
   }
 
   /*
-    If there is no saved snipe account,
-    try any currently authenticated
-    Hqbot account.
+    Otherwise find any connected
+    Microsoft account.
   */
 
   for (
     const [
       username,
-      auth
-    ] of microsoftAuthflows
+      account
+    ] of microsoftAccounts
   ) {
-    if (auth) {
-      snipeAuthInfo = {
+    if (
+      account &&
+      account.connected
+    ) {
+      let auth =
+        microsoftAuthflows.get(
+          username
+        );
+
+      if (!auth) {
+        try {
+          auth =
+            new Authflow(
+              account.authId ||
+                getMicrosoftAuthId(
+                  username
+                ),
+              AUTH_CACHE_DIR,
+              {
+                flow: "live",
+                authTitle:
+                  Titles.MinecraftNintendoSwitch,
+                deviceType:
+                  "Nintendo",
+                forceRefresh:
+                  false
+              }
+            );
+
+          microsoftAuthflows.set(
+            username,
+            auth
+          );
+        } catch {
+          continue;
+        }
+      }
+
+      saveSnipeAuthInfo(
         username,
-        authId:
-          `existing-${username}`,
-        savedAt:
-          Date.now()
-      };
+        account.authId ||
+          getMicrosoftAuthId(
+            username
+          )
+      );
 
       return auth;
     }
@@ -2464,15 +2865,6 @@ async function getSnipeAuthflow() {
 
   return null;
 }
-
-/*
-  Check one exact gamertag.
-
-  Returns:
-    taken
-    available
-    unknown
-*/
 
 async function checkXboxGamertag(
   auth,
@@ -2497,14 +2889,11 @@ async function checkXboxGamertag(
     );
 
   /*
-    Microsoft Xbox profile endpoint.
-
-    gt(NAME) means lookup by
-    exact gamertag.
+    Exact Xbox gamertag lookup.
   */
 
   const url =
-    `https://profile.xboxlive.com/users/gt(${encoded})/profile/settings/people/people?settings=Gamertag`;
+    `https://profile.xboxlive.com/users/gt(${encoded})/profile/settings?settings=Gamertag`;
 
   const response =
     await fetch(
@@ -2512,13 +2901,11 @@ async function checkXboxGamertag(
       {
         method: "GET",
         headers: {
-          "Authorization":
+          Authorization:
             `XBL3.0 x=${xboxToken.userHash};${xboxToken.XSTSToken}`,
           "x-xbl-contract-version":
             "2",
-          "Content-Type":
-            "application/json",
-          "Accept":
+          Accept:
             "application/json"
         }
       }
@@ -2560,10 +2947,6 @@ async function checkXboxGamertag(
 
   return "unknown";
 }
-
-/*
-  Small delay between Xbox lookups.
-*/
 
 function sleep(ms) {
   return new Promise(
@@ -2668,7 +3051,7 @@ discordClient.on(
     }
 
     /* =====================================================
-       ADMIN CHECK FOR KEY COMMANDS
+       KEY COMMANDS
        ===================================================== */
 
     if (
@@ -2697,7 +3080,7 @@ discordClient.on(
     }
 
     /* =====================================================
-       ADMIN CHECK FOR SNIPE
+       SNIPE
        ===================================================== */
 
     if (
@@ -2722,24 +3105,15 @@ discordClient.on(
         );
       }
 
-      /*
-        Prevent two /snipe searches
-        from running at the same time.
-      */
-
       if (snipeRunning) {
         return interaction.reply(
           {
             content:
-              "⏳ A /snipe search is already running. Wait for it to finish.",
+              "⏳ A /snipe search is already running.",
             ephemeral: true
           }
         );
       }
-
-      /*
-        Cooldown.
-      */
 
       const lastSnipe =
         snipeCooldowns.get(
@@ -2783,7 +3157,7 @@ discordClient.on(
       await interaction.reply(
         {
           content:
-            "🔎 **Snipe started.**\nGenerating exact 4-character gamertags and checking Xbox...",
+            "🔎 **Snipe started.**\nChecking exact 4-character Xbox gamertags...",
           ephemeral: true
         }
       );
@@ -2799,16 +3173,10 @@ discordClient.on(
           return interaction.editReply(
             {
               content:
-                "❌ I don't have a Microsoft/Xbox account available for checking yet.\n\nUse **Hqbot → Add Microsoft Account** once, complete the sign-in, then try `/snipe` again."
+                "❌ I don't have a connected Microsoft/Xbox account yet.\n\nUse **Hqbot → Add Microsoft Account**, finish the Microsoft login, then try `/snipe` again."
             }
           );
         }
-
-        /*
-          Make a set so we never check
-          the same generated name twice
-          during this run.
-        */
 
         const checked =
           new Set();
@@ -2862,23 +3230,6 @@ discordClient.on(
             break;
           }
 
-          if (
-            result ===
-            "unknown"
-          ) {
-            console.log(
-              `[SNIPE] Could not determine ${gamertag}`
-            );
-          } else {
-            console.log(
-              `[SNIPE] ${gamertag} is taken`
-            );
-          }
-
-          /*
-            Keep requests spaced out.
-          */
-
           await sleep(
             650
           );
@@ -2904,7 +3255,7 @@ discordClient.on(
               `Length: **4 characters**\n` +
               `Characters: **letters + numbers only**\n` +
               `Checks: **${checks}**\n\n` +
-              `⚠️ This means Xbox's profile lookup did not find that exact gamertag at the time of checking. It is **not a guaranteed reservation/claim**.`
+              `⚠️ Xbox lookup found no profile for this exact name at the time of checking.`
           }
         );
       } catch (error) {
@@ -3072,6 +3423,14 @@ app.listen(
 
     console.log(
       `Activation keys loaded: ${activationKeys.size}`
+    );
+
+    console.log(
+      `Microsoft accounts loaded: ${microsoftAccounts.size}`
+    );
+
+    console.log(
+      "Microsoft/Xbox persistent authentication enabled."
     );
 
     console.log(
