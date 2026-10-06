@@ -20,7 +20,7 @@ const {
 } = require("discord.js");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT || 3000);
 
 app.use(cors());
 app.use(express.json());
@@ -38,10 +38,10 @@ try {
       recursive: true
     });
   }
-} catch (err) {
+} catch (error) {
   console.error(
     "Could not create DATA_DIR:",
-    err
+    error
   );
 }
 
@@ -63,15 +63,8 @@ const MICROSOFT_ACCOUNTS_FILE =
 const SNIPE_AUTH_FILE =
   path.join(DATA_DIR, "snipe-auth.json");
 
-/* =========================================================
-   MICROSOFT AUTH CACHE
-   ========================================================= */
-
 const AUTH_CACHE_DIR =
-  path.join(
-    DATA_DIR,
-    "auth-cache"
-  );
+  path.join(DATA_DIR, "auth-cache");
 
 try {
   if (!fs.existsSync(AUTH_CACHE_DIR)) {
@@ -79,15 +72,15 @@ try {
       recursive: true
     });
   }
-} catch (err) {
+} catch (error) {
   console.error(
     "Could not create auth cache:",
-    err
+    error
   );
 }
 
 /* =========================================================
-   JSON HELPERS
+   JSON
    ========================================================= */
 
 function loadJSON(file, fallback) {
@@ -95,22 +88,17 @@ function loadJSON(file, fallback) {
     if (!fs.existsSync(file)) {
       fs.writeFileSync(
         file,
-        JSON.stringify(
-          fallback,
-          null,
-          2
-        ),
+        JSON.stringify(fallback, null, 2),
         "utf8"
       );
 
       return fallback;
     }
 
-    const raw =
-      fs.readFileSync(
-        file,
-        "utf8"
-      );
+    const raw = fs.readFileSync(
+      file,
+      "utf8"
+    );
 
     if (!raw.trim()) {
       return fallback;
@@ -130,16 +118,11 @@ function loadJSON(file, fallback) {
 
 function saveJSON(file, data) {
   try {
-    const tempFile =
-      `${file}.tmp`;
+    const tempFile = `${file}.tmp`;
 
     fs.writeFileSync(
       tempFile,
-      JSON.stringify(
-        data,
-        null,
-        2
-      ),
+      JSON.stringify(data, null, 2),
       "utf8"
     );
 
@@ -167,30 +150,21 @@ function saveJSON(file, data) {
 const users =
   new Map(
     Object.entries(
-      loadJSON(
-        USERS_FILE,
-        {}
-      )
+      loadJSON(USERS_FILE, {})
     )
   );
 
 const loginSessions =
   new Map(
     Object.entries(
-      loadJSON(
-        SESSIONS_FILE,
-        {}
-      )
+      loadJSON(SESSIONS_FILE, {})
     )
   );
 
 const activationKeys =
   new Map(
     Object.entries(
-      loadJSON(
-        KEYS_FILE,
-        {}
-      )
+      loadJSON(KEYS_FILE, {})
     )
   );
 
@@ -214,7 +188,7 @@ const activeBots =
   new Map();
 
 /* =========================================================
-   SNIPE DATA
+   SNIPE
    ========================================================= */
 
 let snipeAuthInfo =
@@ -283,15 +257,25 @@ function verifyPassword(
         )
         .toString("hex");
 
-    return crypto.timingSafeEqual(
+    const a =
       Buffer.from(
         hash,
         "hex"
-      ),
+      );
+
+    const b =
       Buffer.from(
         storedHash,
         "hex"
-      )
+      );
+
+    if (a.length !== b.length) {
+      return false;
+    }
+
+    return crypto.timingSafeEqual(
+      a,
+      b
     );
   } catch {
     return false;
@@ -314,11 +298,11 @@ function normalizeUsername(value) {
 }
 
 /* =========================================================
-   SESSIONS
+   LOGIN SESSIONS
    ========================================================= */
 
 function saveSessions() {
-  saveJSON(
+  return saveJSON(
     SESSIONS_FILE,
     Object.fromEntries(
       loginSessions
@@ -336,8 +320,7 @@ function createLoginToken(username) {
     token,
     {
       username,
-      createdAt:
-        Date.now()
+      createdAt: Date.now()
     }
   );
 
@@ -352,9 +335,7 @@ function getLoggedInUser(req) {
 
   if (
     !header ||
-    !header.startsWith(
-      "Bearer "
-    )
+    !header.startsWith("Bearer ")
   ) {
     return null;
   }
@@ -363,9 +344,7 @@ function getLoggedInUser(req) {
     header.slice(7);
 
   const session =
-    loginSessions.get(
-      token
-    );
+    loginSessions.get(token);
 
   if (!session) {
     return null;
@@ -380,9 +359,7 @@ function getLoginSession(req) {
 
   if (
     !header ||
-    !header.startsWith(
-      "Bearer "
-    )
+    !header.startsWith("Bearer ")
   ) {
     return null;
   }
@@ -391,9 +368,7 @@ function getLoginSession(req) {
     header.slice(7);
 
   const session =
-    loginSessions.get(
-      token
-    );
+    loginSessions.get(token);
 
   if (!session) {
     return null;
@@ -414,25 +389,16 @@ function isPlanExpired(user) {
     return true;
   }
 
-  if (
-    user.plan ===
-    "lifetime"
-  ) {
+  if (user.plan === "lifetime") {
     return false;
   }
 
-  if (
-    user.plan ===
-    "monthly"
-  ) {
+  if (user.plan === "monthly") {
     if (!user.expiresAt) {
       return true;
     }
 
-    return (
-      Date.now() >=
-      user.expiresAt
-    );
+    return Date.now() >= user.expiresAt;
   }
 
   return true;
@@ -443,10 +409,7 @@ function getRemainingMs(user) {
     return 0;
   }
 
-  if (
-    user.plan ===
-    "lifetime"
-  ) {
+  if (user.plan === "lifetime") {
     return null;
   }
 
@@ -456,15 +419,11 @@ function getRemainingMs(user) {
 
   return Math.max(
     0,
-    user.expiresAt -
-      Date.now()
+    user.expiresAt - Date.now()
   );
 }
 
-function requireActivePlan(
-  req,
-  res
-) {
+function requireActivePlan(req, res) {
   const username =
     getLoggedInUser(req);
 
@@ -489,9 +448,7 @@ function requireActivePlan(
     return null;
   }
 
-  if (
-    isPlanExpired(user)
-  ) {
+  if (isPlanExpired(user)) {
     res.status(403).json({
       error:
         "Error: Your Monthly Hqbot is expired."
@@ -507,15 +464,12 @@ function requireActivePlan(
    HOME
    ========================================================= */
 
-app.get(
-  "/",
-  (req, res) => {
-    res.json({
-      name: "Hqbot",
-      status: "online"
-    });
-  }
-);
+app.get("/", (req, res) => {
+  res.json({
+    name: "Hqbot",
+    status: "online"
+  });
+});
 
 /* =========================================================
    REGISTER
@@ -545,45 +499,31 @@ app.post(
         !password ||
         !activationKey
       ) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Username, password and activation key are required."
-          });
+        return res.status(400).json({
+          error:
+            "Username, password and activation key are required."
+        });
       }
 
-      if (
-        username.length < 3
-      ) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Username must be at least 3 characters."
-          });
+      if (username.length < 3) {
+        return res.status(400).json({
+          error:
+            "Username must be at least 3 characters."
+        });
       }
 
-      if (
-        password.length < 4
-      ) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Password must be at least 4 characters."
-          });
+      if (password.length < 4) {
+        return res.status(400).json({
+          error:
+            "Password must be at least 4 characters."
+        });
       }
 
-      if (
-        users.has(username)
-      ) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Username already exists."
-          });
+      if (users.has(username)) {
+        return res.status(400).json({
+          error:
+            "Username already exists."
+        });
       }
 
       const keyData =
@@ -592,12 +532,10 @@ app.post(
         );
 
       if (!keyData) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Invalid activation key."
-          });
+        return res.status(400).json({
+          error:
+            "Invalid activation key."
+        });
       }
 
       const plan =
@@ -607,24 +545,18 @@ app.post(
         plan !== "monthly" &&
         plan !== "lifetime"
       ) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Invalid activation key type."
-          });
+        return res.status(400).json({
+          error:
+            "Invalid activation key type."
+        });
       }
 
       const now =
         Date.now();
 
-      let expiresAt =
-        null;
+      let expiresAt = null;
 
-      if (
-        plan ===
-        "monthly"
-      ) {
+      if (plan === "monthly") {
         expiresAt =
           now +
           30 *
@@ -637,15 +569,11 @@ app.post(
       const user = {
         username,
         password:
-          hashPassword(
-            password
-          ),
+          hashPassword(password),
         plan,
-        activatedAt:
-          now,
+        activatedAt: now,
         expiresAt,
-        createdAt:
-          now
+        createdAt: now
       };
 
       users.set(
@@ -656,22 +584,16 @@ app.post(
       const saved =
         saveJSON(
           USERS_FILE,
-          Object.fromEntries(
-            users
-          )
+          Object.fromEntries(users)
         );
 
       if (!saved) {
-        users.delete(
-          username
-        );
+        users.delete(username);
 
-        return res
-          .status(500)
-          .json({
-            error:
-              "Could not save your account. Please try again."
-          });
+        return res.status(500).json({
+          error:
+            "Could not save your account. Please try again."
+        });
       }
 
       activationKeys.delete(
@@ -686,9 +608,7 @@ app.post(
       );
 
       const token =
-        createLoginToken(
-          username
-        );
+        createLoginToken(username);
 
       res.json({
         success: true,
@@ -735,30 +655,24 @@ app.post(
         !username ||
         !password
       ) {
-        return res
-          .status(400)
-          .json({
-            error:
-              "Username and password are required."
-          });
+        return res.status(400).json({
+          error:
+            "Username and password are required."
+        });
       }
 
       const user =
-        users.get(
-          username
-        );
+        users.get(username);
 
       if (!user) {
         console.log(
           `LOGIN FAILED: user "${username}" does not exist.`
         );
 
-        return res
-          .status(401)
-          .json({
-            error:
-              "Invalid username or password."
-          });
+        return res.status(401).json({
+          error:
+            "Invalid username or password."
+        });
       }
 
       if (
@@ -772,18 +686,14 @@ app.post(
           `LOGIN FAILED: wrong password for "${username}".`
         );
 
-        return res
-          .status(401)
-          .json({
-            error:
-              "Invalid username or password."
-          });
+        return res.status(401).json({
+          error:
+            "Invalid username or password."
+        });
       }
 
       const token =
-        createLoginToken(
-          username
-        );
+        createLoginToken(username);
 
       console.log(
         `LOGIN SUCCESS: ${username}`
@@ -795,8 +705,7 @@ app.post(
           "Login successful.",
         token,
         username,
-        plan:
-          user.plan,
+        plan: user.plan,
         expiresAt:
           user.expiresAt
       });
@@ -851,33 +760,26 @@ app.get(
       getLoggedInUser(req);
 
     if (!username) {
-      return res
-        .status(401)
-        .json({
-          error:
-            "Not logged in."
-        });
+      return res.status(401).json({
+        error:
+          "Not logged in."
+      });
     }
 
     const user =
-      users.get(
-        username
-      );
+      users.get(username);
 
     if (!user) {
-      return res
-        .status(401)
-        .json({
-          error:
-            "Account not found."
-        });
+      return res.status(401).json({
+        error:
+          "Account not found."
+      });
     }
 
     res.json({
       loggedIn: true,
       username,
-      plan:
-        user.plan,
+      plan: user.plan,
       activatedAt:
         user.activatedAt,
       expiresAt:
@@ -901,32 +803,24 @@ app.get(
       getLoggedInUser(req);
 
     if (!username) {
-      return res
-        .status(401)
-        .json({
-          error:
-            "Not logged in."
-        });
+      return res.status(401).json({
+        error:
+          "Not logged in."
+      });
     }
 
     const user =
-      users.get(
-        username
-      );
+      users.get(username);
 
     if (!user) {
-      return res
-        .status(404)
-        .json({
-          error:
-            "Account not found."
-        });
+      return res.status(404).json({
+        error:
+          "Account not found."
+      });
     }
 
     const remainingMs =
-      getRemainingMs(
-        user
-      );
+      getRemainingMs(user);
 
     const remainingDays =
       remainingMs === null
@@ -941,8 +835,7 @@ app.get(
 
     res.json({
       username,
-      plan:
-        user.plan,
+      plan: user.plan,
       activatedAt:
         user.activatedAt,
       expiresAt:
@@ -959,19 +852,11 @@ app.get(
    ADMIN
    ========================================================= */
 
-function checkAdmin(
-  req,
-  res
-) {
+function checkAdmin(req, res) {
   const adminKey =
-    req.headers[
-      "x-admin-key"
-    ];
+    req.headers["x-admin-key"];
 
-  if (
-    !process.env
-      .HQBOT_ADMIN_KEY
-  ) {
+  if (!process.env.HQBOT_ADMIN_KEY) {
     res.status(500).json({
       error:
         "HQBOT_ADMIN_KEY is not configured."
@@ -1017,12 +902,7 @@ function saveActivationKeys() {
 app.post(
   "/api/admin/generate-key",
   (req, res) => {
-    if (
-      !checkAdmin(
-        req,
-        res
-      )
-    ) {
+    if (!checkAdmin(req, res)) {
       return;
     }
 
@@ -1033,12 +913,10 @@ app.post(
       type !== "monthly" &&
       type !== "lifetime"
     ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Type must be monthly or lifetime."
-        });
+      return res.status(400).json({
+        error:
+          "Type must be monthly or lifetime."
+      });
     }
 
     const key =
@@ -1057,16 +935,12 @@ app.post(
       saveActivationKeys();
 
     if (!saved) {
-      activationKeys.delete(
-        key
-      );
+      activationKeys.delete(key);
 
-      return res
-        .status(500)
-        .json({
-          error:
-            "Could not save activation key."
-        });
+      return res.status(500).json({
+        error:
+          "Could not save activation key."
+      });
     }
 
     res.json({
@@ -1082,12 +956,7 @@ app.post(
 app.get(
   "/api/admin/key-status",
   (req, res) => {
-    if (
-      !checkAdmin(
-        req,
-        res
-      )
-    ) {
+    if (!checkAdmin(req, res)) {
       return;
     }
 
@@ -1097,8 +966,7 @@ app.get(
       ).map(
         ([key, data]) => ({
           key,
-          type:
-            data.type,
+          type: data.type,
           createdAt:
             data.createdAt
         })
@@ -1115,18 +983,12 @@ app.get(
 );
 
 /* =========================================================
-   BOT HELPERS
+   BOT
    ========================================================= */
 
 function getBotForUser(username) {
-  return activeBots.get(
-    username
-  );
+  return activeBots.get(username);
 }
-
-/* =========================================================
-   BOT STATUS
-   ========================================================= */
 
 app.get(
   "/api/bot/status",
@@ -1149,8 +1011,7 @@ app.get(
     if (!bot) {
       return res.json({
         online: false,
-        status:
-          "offline",
+        status: "offline",
         health: null,
         hunger: null,
         position: null,
@@ -1166,17 +1027,13 @@ app.get(
         bot.status ||
         "offline",
       health:
-        bot.health ??
-        null,
+        bot.health ?? null,
       hunger:
-        bot.hunger ??
-        null,
+        bot.hunger ?? null,
       position:
-        bot.position ??
-        null,
+        bot.position ?? null,
       world:
-        bot.world ??
-        null
+        bot.world ?? null
     });
   }
 );
@@ -1200,17 +1057,14 @@ app.post(
 
     const command =
       String(
-        req.body.command ||
-          ""
+        req.body.command || ""
       ).trim();
 
     if (!command) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Command is required."
-        });
+      return res.status(400).json({
+        error:
+          "Command is required."
+      });
     }
 
     const bot =
@@ -1224,25 +1078,20 @@ app.post(
       !bot.connected ||
       !bot.spawned
     ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Bot is not connected."
-        });
+      return res.status(400).json({
+        error:
+          "Bot is not connected."
+      });
     }
 
     let finalCommand =
       command;
 
     if (
-      !finalCommand.startsWith(
-        "/"
-      )
+      !finalCommand.startsWith("/")
     ) {
       finalCommand =
-        "/" +
-        finalCommand;
+        "/" + finalCommand;
     }
 
     try {
@@ -1253,8 +1102,7 @@ app.post(
           needs_translation:
             false,
           source_name:
-            bot.client
-              .username ||
+            bot.client.username ||
             "",
           xuid: "",
           platform_chat_id:
@@ -1293,22 +1141,17 @@ function isNonEmptyItem(item) {
   }
 
   if (
-    item.id !==
-      undefined &&
+    item.id !== undefined &&
     item.id !== null &&
-    Number(item.id) !==
-      0
+    Number(item.id) !== 0
   ) {
     return true;
   }
 
   if (
-    item.item_id !==
-      undefined &&
-    item.item_id !==
-      null &&
-    Number(item.item_id) !==
-      0
+    item.item_id !== undefined &&
+    item.item_id !== null &&
+    Number(item.item_id) !== 0
   ) {
     return true;
   }
@@ -1326,8 +1169,7 @@ function getItemCount(item) {
   }
 
   if (
-    typeof item.count ===
-    "number"
+    typeof item.count === "number"
   ) {
     return item.count;
   }
@@ -1369,24 +1211,17 @@ function normalizeInventoryItem(
   return {
     slot,
     empty:
-      !isNonEmptyItem(
-        item
-      ),
+      !isNonEmptyItem(item),
     id:
       item.id ??
       item.item_id ??
       null,
     name:
-      item.name ??
-      null,
+      item.name ?? null,
     count:
-      getItemCount(
-        item
-      ),
+      getItemCount(item),
     stackId:
-      getItemStackId(
-        item
-      )
+      getItemStackId(item)
   };
 }
 
@@ -1399,24 +1234,20 @@ function attachInventoryListeners(
   }
 
   bot.inventory =
-    Array(36).fill(
-      null
-    );
+    Array(36).fill(null);
 
   bot.client.on(
     "inventory_content",
     packet => {
       try {
         if (
-          packet.window_id !==
-          0
+          packet.window_id !== 0
         ) {
           return;
         }
 
         const contents =
-          packet.input ??
-          [];
+          packet.input ?? [];
 
         for (
           let i = 0;
@@ -1424,8 +1255,7 @@ function attachInventoryListeners(
           i++
         ) {
           bot.inventory[i] =
-            contents[i] ??
-            null;
+            contents[i] ?? null;
         }
       } catch (error) {
         console.error(
@@ -1441,26 +1271,20 @@ function attachInventoryListeners(
     packet => {
       try {
         if (
-          packet.window_id !==
-          0
+          packet.window_id !== 0
         ) {
           return;
         }
 
         const slot =
-          Number(
-            packet.slot
-          );
+          Number(packet.slot);
 
         if (
           slot >= 0 &&
           slot <= 35
         ) {
-          bot.inventory[
-            slot
-          ] =
-            packet.item ??
-            null;
+          bot.inventory[slot] =
+            packet.item ?? null;
         }
       } catch (error) {
         console.error(
@@ -1495,19 +1319,15 @@ app.get(
       !bot.connected ||
       !bot.spawned
     ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Bot is not connected."
-        });
+      return res.status(400).json({
+        error:
+          "Bot is not connected."
+      });
     }
 
     const inventory =
       bot.inventory ||
-      Array(36).fill(
-        null
-      );
+      Array(36).fill(null);
 
     const hotbar =
       inventory
@@ -1563,42 +1383,34 @@ app.post(
       !bot.spawned ||
       !bot.client
     ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Bot is not connected."
-        });
+      return res.status(400).json({
+        error:
+          "Bot is not connected."
+      });
     }
 
     const requestedSlot =
-      Number(
-        req.body.slot
-      );
+      Number(req.body.slot);
 
     if (
       !Number.isInteger(
         requestedSlot
       )
     ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Invalid slot."
-        });
+      return res.status(400).json({
+        error:
+          "Invalid slot."
+      });
     }
 
     if (
       requestedSlot < 9 ||
       requestedSlot > 35
     ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Hotbar slots are protected. Only main inventory slots can be dropped."
-        });
+      return res.status(400).json({
+        error:
+          "Hotbar slots are protected. Only main inventory slots can be dropped."
+      });
     }
 
     const item =
@@ -1607,16 +1419,12 @@ app.post(
       ];
 
     if (
-      !isNonEmptyItem(
-        item
-      )
+      !isNonEmptyItem(item)
     ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "That inventory slot is empty."
-        });
+      return res.status(400).json({
+        error:
+          "That inventory slot is empty."
+      });
     }
 
     try {
@@ -1630,8 +1438,7 @@ app.post(
             ),
           actions: [],
           result: 0,
-          type_id:
-            "drop"
+          type_id: "drop"
         }
       );
 
@@ -1655,20 +1462,18 @@ app.post(
 );
 
 /* =========================================================
-   MICROSOFT HELPERS
+   MICROSOFT AUTH
    ========================================================= */
 
 /*
-  ONE permanent Authflow identity
-  for ONE Hqbot account.
+  Stable ID:
+  One Hqbot user = one Authflow cache.
 
-  The login session ID is NEVER used
-  as the Authflow username.
+  The ID no longer changes every time
+  the user presses Add Account.
 */
 
-function getMicrosoftAuthId(
-  username
-) {
+function getMicrosoftAuthId(username) {
   return (
     "hqbot-account-" +
     username
@@ -1684,9 +1489,7 @@ function saveMicrosoftAccounts() {
   );
 }
 
-function getMicrosoftAccount(
-  username
-) {
+function getMicrosoftAccount(username) {
   return (
     microsoftAccounts.get(
       username
@@ -1749,23 +1552,14 @@ function updateMicrosoftSession(
   return session;
 }
 
-/* =========================================================
-   DEVICE CODE PARSER
-   ========================================================= */
-
 function parseMicrosoftDeviceCode(
   message
 ) {
   const text =
-    String(
-      message || ""
-    );
+    String(message || "");
 
-  let user_code =
-    null;
-
-  let verification_uri =
-    null;
+  let user_code = null;
+  let verification_uri = null;
 
   const urlMatch =
     text.match(
@@ -1780,19 +1574,14 @@ function parseMicrosoftDeviceCode(
       );
   }
 
-  const codePatterns = [
+  const patterns = [
     /(?:code|code is|enter(?: the)? code)[\s:]+([A-Z0-9-]{4,})/i,
     /\b([A-Z0-9]{4,8}-[A-Z0-9]{3,8})\b/
   ];
 
-  for (
-    const regex of
-      codePatterns
-  ) {
+  for (const regex of patterns) {
     const match =
-      text.match(
-        regex
-      );
+      text.match(regex);
 
     if (match) {
       user_code =
@@ -1809,25 +1598,59 @@ function parseMicrosoftDeviceCode(
 }
 
 /* =========================================================
-   MICROSOFT AUTHFLOW CREATION
+   AUTHFLOW OPTIONS
    ========================================================= */
 
 /*
-  IMPORTANT:
+  prismarine-auth currently exposes
+  MinecraftNintendoSwitch as its known
+  Bedrock client ID.
 
-  Microsoft/Prismarine currently exposes
-  MinecraftNintendoSwitch as the known
-  Bedrock client title.
+  Win32 makes the authentication device
+  a Windows/PC-type device.
 
-  We do NOT pretend that means the user
-  owns a Nintendo Switch.
-
-  The actual Hqbot connection is still
-  a Microsoft/Xbox Bedrock connection.
-
-  Win32 is used as the auth device type
-  instead of Nintendo.
+  This does NOT mean Hqbot only works
+  for Nintendo or only for PC users.
+  Hqbot itself can be opened from
+  PC/mobile/browser.
 */
+
+function getAuthflowOptions() {
+  return {
+    flow: "live",
+    authTitle:
+      Titles.MinecraftNintendoSwitch,
+    deviceType:
+      process.env.HQBOT_AUTH_DEVICE_TYPE ||
+      "Win32",
+    forceRefresh: false
+  };
+}
+
+/* =========================================================
+   SAVE SNIPE AUTH
+   ========================================================= */
+
+function saveSnipeAuthInfo(
+  username,
+  authId
+) {
+  snipeAuthInfo = {
+    username,
+    authId,
+    savedAt:
+      Date.now()
+  };
+
+  saveJSON(
+    SNIPE_AUTH_FILE,
+    snipeAuthInfo
+  );
+}
+
+/* =========================================================
+   CREATE AUTHFLOW
+   ========================================================= */
 
 function createMicrosoftAuthflow(
   username,
@@ -1842,36 +1665,10 @@ function createMicrosoftAuthflow(
     new Authflow(
       authId,
       AUTH_CACHE_DIR,
-      {
-        flow: "live",
-
-        /*
-          This is the known Bedrock title
-          exposed by prismarine-auth.
-        */
-        authTitle:
-          Titles.MinecraftNintendoSwitch,
-
-        /*
-          Hqbot itself is running as a
-          normal Windows/PC-style client
-          rather than pretending to be
-          a Nintendo device.
-        */
-        deviceType:
-          "Win32",
-
-        /*
-          NEVER force a fresh login unless
-          we explicitly need to.
-        */
-        forceRefresh:
-          false
-      },
+      getAuthflowOptions(),
       deviceCode => {
         try {
-          const patch =
-            {};
+          const patch = {};
 
           if (
             deviceCode &&
@@ -1904,8 +1701,7 @@ function createMicrosoftAuthflow(
           } else {
             const text =
               String(
-                deviceCode ||
-                  ""
+                deviceCode || ""
               );
 
             const parsed =
@@ -1933,12 +1729,6 @@ function createMicrosoftAuthflow(
 
           patch.status =
             "waiting_for_login";
-
-          patch.microsoftConnected =
-            false;
-
-          patch.botStatus =
-            "offline";
 
           updateMicrosoftSession(
             sessionId,
@@ -1975,52 +1765,6 @@ function createMicrosoftAuthflow(
 }
 
 /* =========================================================
-   RESTORE MICROSOFT AUTHFLOW
-   ========================================================= */
-
-function restoreMicrosoftAuthflow(
-  username,
-  authId
-) {
-  const stableId =
-    authId ||
-    getMicrosoftAuthId(
-      username
-    );
-
-  const existing =
-    microsoftAuthflows.get(
-      username
-    );
-
-  if (existing) {
-    return existing;
-  }
-
-  const auth =
-    new Authflow(
-      stableId,
-      AUTH_CACHE_DIR,
-      {
-        flow: "live",
-        authTitle:
-          Titles.MinecraftNintendoSwitch,
-        deviceType:
-          "Win32",
-        forceRefresh:
-          false
-      }
-    );
-
-  microsoftAuthflows.set(
-    username,
-    auth
-  );
-
-  return auth;
-}
-
-/* =========================================================
    START MICROSOFT AUTH
    ========================================================= */
 
@@ -2032,12 +1776,8 @@ async function startMicrosoftAuth(
     updateMicrosoftSession(
       sessionId,
       {
-        status:
-          "starting",
-        microsoftConnected:
-          false,
-        botStatus:
-          "offline",
+        status: "starting",
+        botStatus: "offline",
         message:
           "Starting Microsoft sign-in..."
       }
@@ -2052,43 +1792,6 @@ async function startMicrosoftAuth(
       getMicrosoftAuthId(
         username
       );
-
-    /*
-      Reuse existing Authflow first.
-    */
-
-    if (!auth) {
-      const existingAccount =
-        getMicrosoftAccount(
-          username
-        );
-
-      if (
-        existingAccount &&
-        existingAccount.authId
-      ) {
-        try {
-          auth =
-            restoreMicrosoftAuthflow(
-              username,
-              existingAccount.authId
-            );
-
-          authId =
-            existingAccount.authId;
-        } catch (error) {
-          console.error(
-            "Could not restore saved Authflow:",
-            error
-          );
-        }
-      }
-    }
-
-    /*
-      If there is no Authflow yet,
-      create the permanent one.
-    */
 
     if (!auth) {
       const created =
@@ -2108,9 +1811,9 @@ async function startMicrosoftAuth(
       username,
       {
         authId,
+        connected: false,
         status:
-          "authenticating",
-        connected: false
+          "authenticating"
       }
     );
 
@@ -2129,9 +1832,11 @@ async function startMicrosoftAuth(
       }
     );
 
-    /* =====================================================
-       ACTUAL MICROSOFT/XBOX AUTH
-       ===================================================== */
+    /*
+      Xbox authentication.
+      Cached credentials will be reused
+      when available.
+    */
 
     const xboxToken =
       await auth.getXboxToken();
@@ -2147,8 +1852,9 @@ async function startMicrosoftAuth(
     }
 
     /*
-      Microsoft/Xbox authentication
-      succeeded.
+      Microsoft/Xbox is now authenticated.
+      This is NOT yet the same as the
+      Minecraft bot being online.
     */
 
     setMicrosoftAccount(
@@ -2156,8 +1862,7 @@ async function startMicrosoftAuth(
       {
         authId,
         connected: true,
-        status:
-          "connected",
+        status: "connected",
         connectedAt:
           Date.now(),
         xuid:
@@ -2188,7 +1893,7 @@ async function startMicrosoftAuth(
     );
 
     /* =====================================================
-       MINECRAFT SERVER SETTINGS
+       MINECRAFT SERVER
        ===================================================== */
 
     const host =
@@ -2202,7 +1907,7 @@ async function startMicrosoftAuth(
 
     if (!host) {
       console.log(
-        `[${username}] Microsoft connected but LBSG_HOST is not configured.`
+        `[${username}] LBSG_HOST is not configured.`
       );
 
       updateMicrosoftSession(
@@ -2237,9 +1942,7 @@ async function startMicrosoftAuth(
     ) {
       try {
         oldBot.client.disconnect();
-      } catch {
-        // Ignore.
-      }
+      } catch {}
 
       activeBots.delete(
         username
@@ -2261,47 +1964,29 @@ async function startMicrosoftAuth(
     );
 
     /* =====================================================
-       CREATE BEDROCK CLIENT
+       BEDROCK CLIENT
        ===================================================== */
 
     const client =
       bedrock.createClient({
         host,
         port,
-
-        /*
-          Reuse the same authenticated
-          Prismarine Authflow.
-        */
         authflow: auth,
-
-        /*
-          Microsoft/Xbox online mode.
-        */
         offline: false
       });
 
     const bot = {
       client,
       username,
-
-      /*
-        Do NOT mark online yet.
-      */
       connected: false,
       spawned: false,
-      status:
-        "connecting",
-
+      status: "connecting",
       health: null,
       hunger: null,
       position: null,
       world: null,
-
       inventory:
-        Array(36).fill(
-          null
-        )
+        Array(36).fill(null)
     };
 
     activeBots.set(
@@ -2322,14 +2007,11 @@ async function startMicrosoftAuth(
       "connect",
       () => {
         console.log(
-          `[${username}] Minecraft transport connected.`
+          `Bot connected for ${username}`
         );
 
-        bot.connected =
-          true;
-
-        bot.status =
-          "connected";
+        bot.connected = true;
+        bot.status = "connected";
 
         updateMicrosoftSession(
           sessionId,
@@ -2355,51 +2037,27 @@ async function startMicrosoftAuth(
       "join",
       () => {
         console.log(
-          `[${username}] Minecraft bot joined.`
+          `Bot joined for ${username}`
         );
 
-        bot.status =
-          "joined";
-
-        updateMicrosoftSession(
-          sessionId,
-          {
-            status:
-              "authenticated",
-            microsoftConnected:
-              true,
-            botStatus:
-              "joining",
-            message:
-              "Minecraft bot authenticated and joining..."
-          }
-        );
+        bot.status = "joined";
       }
     );
 
     /* =====================================================
-       SPAWN
+       SPAWN = ACTUALLY ONLINE
        ===================================================== */
 
     client.on(
       "spawn",
       () => {
         console.log(
-          `[${username}] Minecraft bot SPAWNED.`
+          `Bot spawned for ${username}`
         );
 
-        /*
-          THIS is the real ONLINE state.
-        */
-
-        bot.connected =
-          true;
-
-        bot.spawned =
-          true;
-
-        bot.status =
-          "online";
+        bot.connected = true;
+        bot.spawned = true;
+        bot.status = "online";
 
         updateMicrosoftSession(
           sessionId,
@@ -2412,19 +2070,6 @@ async function startMicrosoftAuth(
               "online",
             message:
               "Microsoft/Xbox account connected successfully. Bot is online."
-          }
-        );
-
-        setMicrosoftAccount(
-          username,
-          {
-            connected: true,
-            status:
-              "connected",
-            botOnline:
-              true,
-            botOnlineAt:
-              Date.now()
           }
         );
       }
@@ -2452,26 +2097,13 @@ async function startMicrosoftAuth(
       "error",
       error => {
         console.error(
-          `[${username}] Minecraft BOT ERROR:`,
+          `Bot error for ${username}:`,
           error
         );
 
-        bot.connected =
-          false;
-
-        bot.spawned =
-          false;
-
-        bot.status =
-          "error";
-
-        /*
-          IMPORTANT:
-
-          Minecraft server error does NOT
-          automatically mean Microsoft
-          authentication failed.
-        */
+        bot.connected = false;
+        bot.spawned = false;
+        bot.status = "error";
 
         updateMicrosoftSession(
           sessionId,
@@ -2483,24 +2115,7 @@ async function startMicrosoftAuth(
             botStatus:
               "offline",
             message:
-              `Microsoft/Xbox account is connected, but Minecraft bot failed: ${
-                error.message ||
-                "Unknown Minecraft error."
-              }`
-          }
-        );
-
-        setMicrosoftAccount(
-          username,
-          {
-            connected: true,
-            status:
-              "connected",
-            botOnline:
-              false,
-            lastBotError:
-              error.message ||
-              "Unknown Minecraft error."
+              "Microsoft/Xbox account is connected, but the Minecraft bot could not connect."
           }
         );
       }
@@ -2514,17 +2129,12 @@ async function startMicrosoftAuth(
       "close",
       () => {
         console.log(
-          `[${username}] Minecraft bot connection closed.`
+          `Bot closed for ${username}`
         );
 
-        bot.connected =
-          false;
-
-        bot.spawned =
-          false;
-
-        bot.status =
-          "offline";
+        bot.connected = false;
+        bot.spawned = false;
+        bot.status = "offline";
 
         updateMicrosoftSession(
           sessionId,
@@ -2537,17 +2147,6 @@ async function startMicrosoftAuth(
               "offline",
             message:
               "Microsoft/Xbox account is still connected. Minecraft bot is offline."
-          }
-        );
-
-        setMicrosoftAccount(
-          username,
-          {
-            connected: true,
-            status:
-              "connected",
-            botOnline:
-              false
           }
         );
       }
@@ -2568,15 +2167,6 @@ async function startMicrosoftAuth(
         current &&
         current.connected
       );
-
-    /*
-      Only call Microsoft disconnected
-      if Microsoft authentication itself
-      failed.
-
-      A Minecraft server failure should
-      not erase a valid Microsoft account.
-    */
 
     updateMicrosoftSession(
       sessionId,
@@ -2603,15 +2193,8 @@ async function startMicrosoftAuth(
             getMicrosoftAuthId(
               username
             ),
-          connected:
-            false,
-          status:
-            "error",
-          botOnline:
-            false,
-          lastError:
-            error.message ||
-            "Microsoft sign-in failed."
+          connected: false,
+          status: "error"
         }
       );
     }
@@ -2619,7 +2202,7 @@ async function startMicrosoftAuth(
 }
 
 /* =========================================================
-   MICROSOFT LOGIN START
+   MICROSOFT LOGIN
    ========================================================= */
 
 app.post(
@@ -2638,6 +2221,11 @@ app.post(
     const username =
       user.username;
 
+    /*
+      If an old login attempt exists,
+      replace it with a fresh session.
+    */
+
     const sessionId =
       crypto.randomUUID();
 
@@ -2645,22 +2233,17 @@ app.post(
       sessionId,
       {
         username,
-        status:
-          "starting",
+        status: "starting",
         microsoftConnected:
           false,
-        botStatus:
-          "offline",
+        botStatus: "offline",
         createdAt:
           Date.now(),
-        expiresAt:
-          null,
+        expiresAt: null,
         message:
           "Starting Microsoft sign-in...",
-        user_code:
-          null,
-        verification_uri:
-          null
+        user_code: null,
+        verification_uri: null
       }
     );
 
@@ -2676,8 +2259,7 @@ app.post(
       updateMicrosoftSession(
         sessionId,
         {
-          status:
-            "error",
+          status: "error",
           microsoftConnected:
             false,
           botStatus:
@@ -2709,12 +2291,10 @@ app.get(
       getLoggedInUser(req);
 
     if (!username) {
-      return res
-        .status(401)
-        .json({
-          error:
-            "Not logged in."
-        });
+      return res.status(401).json({
+        error:
+          "Not logged in."
+      });
     }
 
     const session =
@@ -2723,24 +2303,20 @@ app.get(
       );
 
     if (!session) {
-      return res
-        .status(404)
-        .json({
-          error:
-            "Microsoft session not found."
-        });
+      return res.status(404).json({
+        error:
+          "Microsoft session not found."
+      });
     }
 
     if (
       session.username !==
       username
     ) {
-      return res
-        .status(403)
-        .json({
-          error:
-            "Unauthorized."
-        });
+      return res.status(403).json({
+        error:
+          "Unauthorized."
+      });
     }
 
     const account =
@@ -2755,22 +2331,13 @@ app.get(
         !!(
           account &&
           account.connected
-        ),
-      botOnline:
-        !!(
-          getBotForUser(
-            username
-          )?.connected &&
-          getBotForUser(
-            username
-          )?.spawned
         )
     });
   }
 );
 
 /* =========================================================
-   REAL MICROSOFT ACCOUNT STATUS
+   MICROSOFT ACCOUNT STATUS
    ========================================================= */
 
 app.get(
@@ -2786,7 +2353,7 @@ app.get(
       return;
     }
 
-    let account =
+    const account =
       getMicrosoftAccount(
         user.username
       );
@@ -2802,12 +2369,6 @@ app.get(
       });
     }
 
-    /*
-      Restore Authflow from the
-      persistent cache if the current
-      Node process doesn't have it.
-    */
-
     let auth =
       microsoftAuthflows.get(
         user.username
@@ -2816,13 +2377,18 @@ app.get(
     if (!auth) {
       try {
         auth =
-          restoreMicrosoftAuthflow(
-            user.username,
-            account.authId
+          new Authflow(
+            account.authId ||
+              getMicrosoftAuthId(
+                user.username
+              ),
+            AUTH_CACHE_DIR,
+            getAuthflowOptions()
           );
 
-        console.log(
-          `[${user.username}] Microsoft Authflow restored from persistent cache.`
+        microsoftAuthflows.set(
+          user.username,
+          auth
         );
       } catch (error) {
         console.error(
@@ -2877,14 +2443,13 @@ function generateFourCharacterGamertag() {
     i < 4;
     i++
   ) {
-    const index =
-      crypto.randomInt(
-        0,
-        SNIPE_CHARACTERS.length
-      );
-
     result +=
-      SNIPE_CHARACTERS[index];
+      SNIPE_CHARACTERS[
+        crypto.randomInt(
+          0,
+          SNIPE_CHARACTERS.length
+        )
+      ];
   }
 
   return result;
@@ -2892,7 +2457,7 @@ function generateFourCharacterGamertag() {
 
 async function getSnipeAuthflow() {
   /*
-    First use the saved Hqbot account.
+    First use saved account.
   */
 
   if (
@@ -2922,9 +2487,13 @@ async function getSnipeAuthflow() {
     ) {
       try {
         auth =
-          restoreMicrosoftAuthflow(
-            username,
-            account.authId
+          new Authflow(
+            account.authId ||
+              getMicrosoftAuthId(
+                username
+              ),
+            AUTH_CACHE_DIR,
+            getAuthflowOptions()
           );
 
         microsoftAuthflows.set(
@@ -2943,8 +2512,7 @@ async function getSnipeAuthflow() {
   }
 
   /*
-    Otherwise find any connected
-    Microsoft account.
+    Otherwise use any connected account.
   */
 
   for (
@@ -2965,9 +2533,13 @@ async function getSnipeAuthflow() {
       if (!auth) {
         try {
           auth =
-            restoreMicrosoftAuthflow(
-              username,
-              account.authId
+            new Authflow(
+              account.authId ||
+                getMicrosoftAuthId(
+                  username
+                ),
+              AUTH_CACHE_DIR,
+              getAuthflowOptions()
             );
 
           microsoftAuthflows.set(
@@ -3035,35 +2607,24 @@ async function checkXboxGamertag(
       }
     );
 
-  if (
-    response.status ===
-    404
-  ) {
+  if (response.status === 404) {
     return "available";
   }
 
-  if (
-    response.status ===
-    200
-  ) {
+  if (response.status === 200) {
     return "taken";
   }
 
   if (
-    response.status ===
-    401 ||
-    response.status ===
-    403
+    response.status === 401 ||
+    response.status === 403
   ) {
     throw new Error(
       `Xbox authentication rejected the request (${response.status}).`
     );
   }
 
-  if (
-    response.status ===
-    429
-  ) {
+  if (response.status === 429) {
     throw new Error(
       "Xbox rate limit reached. Try /snipe again later."
     );
@@ -3075,10 +2636,7 @@ async function checkXboxGamertag(
 function sleep(ms) {
   return new Promise(
     resolve =>
-      setTimeout(
-        resolve,
-        ms
-      )
+      setTimeout(resolve, ms)
   );
 }
 
@@ -3113,12 +2671,14 @@ const lifetimeCommand =
 
 const snipeCommand =
   new SlashCommandBuilder()
-    .setName(
-      "snipe"
-    )
+    .setName("snipe")
     .setDescription(
       "Find an exact 4-character Xbox gamertag"
     );
+
+/* =========================================================
+   DISCORD READY
+   ========================================================= */
 
 discordClient.once(
   "ready",
@@ -3132,26 +2692,53 @@ discordClient.once(
         new REST({
           version: "10"
         }).setToken(
-          process.env
-            .DISCORD_BOT_TOKEN
+          process.env.DISCORD_BOT_TOKEN
         );
 
-      await rest.put(
-        Routes.applicationCommands(
-          discordClient.user.id
-        ),
-        {
-          body: [
-            monthlyCommand.toJSON(),
-            lifetimeCommand.toJSON(),
-            snipeCommand.toJSON()
-          ]
-        }
-      );
+      const commands = [
+        monthlyCommand.toJSON(),
+        lifetimeCommand.toJSON(),
+        snipeCommand.toJSON()
+      ];
 
-      console.log(
-        "Discord slash commands registered."
-      );
+      /*
+        If DISCORD_GUILD_ID is provided,
+        commands appear almost immediately
+        in that server.
+
+        Otherwise they are registered globally.
+      */
+
+      if (
+        process.env.DISCORD_GUILD_ID
+      ) {
+        await rest.put(
+          Routes.applicationGuildCommands(
+            discordClient.user.id,
+            process.env.DISCORD_GUILD_ID
+          ),
+          {
+            body: commands
+          }
+        );
+
+        console.log(
+          "Discord guild slash commands registered."
+        );
+      } else {
+        await rest.put(
+          Routes.applicationCommands(
+            discordClient.user.id
+          ),
+          {
+            body: commands
+          }
+        );
+
+        console.log(
+          "Discord global slash commands registered."
+        );
+      }
     } catch (error) {
       console.error(
         "Discord command registration error:",
@@ -3162,7 +2749,7 @@ discordClient.once(
 );
 
 /* =========================================================
-   DISCORD COMMANDS
+   DISCORD INTERACTIONS
    ========================================================= */
 
 discordClient.on(
@@ -3174,16 +2761,26 @@ discordClient.on(
       return;
     }
 
-    /* =====================================================
-       KEY COMMAND AUTH
-       ===================================================== */
+    try {
+      /*
+        IMPORTANT FIX:
 
-    if (
-      interaction.commandName ===
-        "genkeymonthly" ||
-      interaction.commandName ===
-        "genkeylifetime"
-    ) {
+        A Discord interaction has only a few
+        seconds to be acknowledged.
+
+        We acknowledge EVERY command immediately.
+        This prevents:
+        "The application did not respond."
+      */
+
+      await interaction.deferReply({
+        ephemeral: true
+      });
+
+      /* =====================================================
+         AUTHORIZATION
+         ===================================================== */
+
       const adminDiscordId =
         process.env
           .DISCORD_ADMIN_USER_ID;
@@ -3193,186 +2790,225 @@ discordClient.on(
         interaction.user.id !==
           adminDiscordId
       ) {
-        return interaction.reply(
-          {
-            content:
-              "❌ You are not authorized to generate Hqbot keys.",
-            ephemeral: true
-          }
-        );
+        return interaction.editReply({
+          content:
+            "❌ You are not authorized to use this command."
+        });
       }
-    }
 
-    /* =====================================================
-       SNIPE
-       ===================================================== */
-
-    if (
-      interaction.commandName ===
-      "snipe"
-    ) {
-      const adminDiscordId =
-        process.env
-          .DISCORD_ADMIN_USER_ID;
+      /* =====================================================
+         MONTHLY KEY
+         ===================================================== */
 
       if (
-        adminDiscordId &&
-        interaction.user.id !==
-          adminDiscordId
+        interaction.commandName ===
+        "genkeymonthly"
       ) {
-        return interaction.reply(
+        const key =
+          generateActivationKey();
+
+        activationKeys.set(
+          key,
           {
-            content:
-              "❌ You are not authorized to use /snipe.",
-            ephemeral: true
+            type: "monthly",
+            createdAt:
+              Date.now()
           }
         );
-      }
 
-      if (snipeRunning) {
-        return interaction.reply(
-          {
-            content:
-              "⏳ A /snipe search is already running.",
-            ephemeral: true
-          }
-        );
-      }
+        const saved =
+          saveActivationKeys();
 
-      const lastSnipe =
-        snipeCooldowns.get(
-          interaction.user.id
-        );
-
-      if (
-        lastSnipe &&
-        Date.now() -
-          lastSnipe <
-          SNIPE_COOLDOWN
-      ) {
-        const seconds =
-          Math.ceil(
-            (
-              SNIPE_COOLDOWN -
-              (
-                Date.now() -
-                lastSnipe
-              )
-            ) /
-              1000
+        if (!saved) {
+          activationKeys.delete(
+            key
           );
 
-        return interaction.reply(
-          {
+          return interaction.editReply({
             content:
-              `⏳ Try /snipe again in ${seconds}s.`,
-            ephemeral: true
-          }
-        );
+              "❌ Failed to save the activation key."
+          });
+        }
+
+        return interaction.editReply({
+          content:
+            `🔐 **Hqbot Monthly Key**\n\n` +
+            `\`${key}\`\n\n` +
+            `⏳ 30 days start when the key is used.`
+        });
       }
 
-      snipeCooldowns.set(
-        interaction.user.id,
-        Date.now()
-      );
+      /* =====================================================
+         LIFETIME KEY
+         ===================================================== */
 
-      snipeRunning = true;
+      if (
+        interaction.commandName ===
+        "genkeylifetime"
+      ) {
+        const key =
+          generateActivationKey();
 
-      await interaction.reply(
-        {
-          content:
-            "🔎 **Snipe started.**\nChecking exact 4-character Xbox gamertags...",
-          ephemeral: true
+        activationKeys.set(
+          key,
+          {
+            type: "lifetime",
+            createdAt:
+              Date.now()
+          }
+        );
+
+        const saved =
+          saveActivationKeys();
+
+        if (!saved) {
+          activationKeys.delete(
+            key
+          );
+
+          return interaction.editReply({
+            content:
+              "❌ Failed to save the activation key."
+          });
         }
-      );
 
-      try {
-        const auth =
-          await getSnipeAuthflow();
+        return interaction.editReply({
+          content:
+            `♾️ **Hqbot Lifetime Key**\n\n` +
+            `\`${key}\`\n\n` +
+            `♾️ Never expires.`
+        });
+      }
 
-        if (!auth) {
-          snipeRunning =
-            false;
+      /* =====================================================
+         SNIPE
+         ===================================================== */
 
-          return interaction.editReply(
-            {
+      if (
+        interaction.commandName ===
+        "snipe"
+      ) {
+        if (snipeRunning) {
+          return interaction.editReply({
+            content:
+              "⏳ A /snipe search is already running."
+          });
+        }
+
+        const lastSnipe =
+          snipeCooldowns.get(
+            interaction.user.id
+          );
+
+        if (
+          lastSnipe &&
+          Date.now() -
+            lastSnipe <
+            SNIPE_COOLDOWN
+        ) {
+          const seconds =
+            Math.ceil(
+              (
+                SNIPE_COOLDOWN -
+                (
+                  Date.now() -
+                  lastSnipe
+                )
+              ) /
+                1000
+            );
+
+          return interaction.editReply({
+            content:
+              `⏳ Try /snipe again in ${seconds}s.`
+          });
+        }
+
+        snipeCooldowns.set(
+          interaction.user.id,
+          Date.now()
+        );
+
+        snipeRunning = true;
+
+        await interaction.editReply({
+          content:
+            "🔎 **Snipe started.**\nChecking exact 4-character Xbox gamertags..."
+        });
+
+        try {
+          const auth =
+            await getSnipeAuthflow();
+
+          if (!auth) {
+            snipeRunning = false;
+
+            return interaction.editReply({
               content:
                 "❌ I don't have a connected Microsoft/Xbox account yet.\n\nUse **Hqbot → Add Microsoft Account**, finish the Microsoft login, then try `/snipe` again."
-            }
-          );
-        }
+            });
+          }
 
-        const checked =
-          new Set();
+          const checked =
+            new Set();
 
-        let found =
-          null;
+          let found = null;
+          let checks = 0;
 
-        let checks =
-          0;
+          for (
+            let attempt = 0;
+            attempt <
+            SNIPE_MAX_CHECKS;
+            attempt++
+          ) {
+            let gamertag;
 
-        for (
-          let attempt = 0;
-          attempt <
-          SNIPE_MAX_CHECKS;
-          attempt++
-        ) {
-          let gamertag;
+            do {
+              gamertag =
+                generateFourCharacterGamertag();
+            } while (
+              checked.has(gamertag)
+            );
 
-          do {
-            gamertag =
-              generateFourCharacterGamertag();
-          } while (
-            checked.has(
-              gamertag
-            )
-          );
-
-          checked.add(
-            gamertag
-          );
-
-          checks++;
-
-          console.log(
-            `[SNIPE] Checking ${gamertag}`
-          );
-
-          const result =
-            await checkXboxGamertag(
-              auth,
+            checked.add(
               gamertag
             );
 
-          if (
-            result ===
-            "available"
-          ) {
-            found =
-              gamertag;
+            checks++;
 
-            break;
+            console.log(
+              `[SNIPE] Checking ${gamertag}`
+            );
+
+            const result =
+              await checkXboxGamertag(
+                auth,
+                gamertag
+              );
+
+            if (
+              result ===
+              "available"
+            ) {
+              found =
+                gamertag;
+
+              break;
+            }
+
+            await sleep(650);
           }
 
-          await sleep(
-            650
-          );
-        }
+          snipeRunning = false;
 
-        snipeRunning =
-          false;
-
-        if (!found) {
-          return interaction.editReply(
-            {
+          if (!found) {
+            return interaction.editReply({
               content:
                 `❌ I couldn't confirm an unused 4-character gamertag after ${checks} checks.\n\nTry **/snipe** again later.`
-            }
-          );
-        }
+            });
+          }
 
-        return interaction.editReply(
-          {
+          return interaction.editReply({
             content:
               `🎯 **4C GAMERTAG FOUND**\n\n` +
               `# \`${found}\`\n\n` +
@@ -3380,141 +3016,72 @@ discordClient.on(
               `Characters: **letters + numbers only**\n` +
               `Checks: **${checks}**\n\n` +
               `⚠️ Xbox lookup found no profile for this exact name at the time of checking.`
-          }
-        );
-      } catch (error) {
-        snipeRunning =
-          false;
+          });
+        } catch (error) {
+          snipeRunning = false;
 
+          console.error(
+            "SNIPE ERROR:",
+            error
+          );
+
+          return interaction.editReply({
+            content:
+              `❌ **Snipe error**\n\n${error.message || "Could not check Xbox gamertags."}`
+          });
+        }
+      }
+
+      /*
+        Unknown command.
+      */
+
+      return interaction.editReply({
+        content:
+          "❌ Unknown command."
+      });
+    } catch (error) {
+      console.error(
+        "DISCORD INTERACTION ERROR:",
+        error
+      );
+
+      try {
+        if (
+          interaction.deferred ||
+          interaction.replied
+        ) {
+          await interaction.editReply({
+            content:
+              "❌ Something went wrong while processing the command."
+          });
+        } else {
+          await interaction.reply({
+            content:
+              "❌ Something went wrong while processing the command.",
+            ephemeral: true
+          });
+        }
+      } catch (replyError) {
         console.error(
-          "SNIPE ERROR:",
-          error
-        );
-
-        return interaction.editReply(
-          {
-            content:
-              `❌ **Snipe error**\n\n${
-                error.message ||
-                "Could not check Xbox gamertags."
-              }`
-          }
+          "DISCORD REPLY ERROR:",
+          replyError
         );
       }
-    }
-
-    /* =====================================================
-       MONTHLY KEY
-       ===================================================== */
-
-    if (
-      interaction.commandName ===
-      "genkeymonthly"
-    ) {
-      const key =
-        generateActivationKey();
-
-      activationKeys.set(
-        key,
-        {
-          type:
-            "monthly",
-          createdAt:
-            Date.now()
-        }
-      );
-
-      const saved =
-        saveActivationKeys();
-
-      if (!saved) {
-        activationKeys.delete(
-          key
-        );
-
-        return interaction.reply(
-          {
-            content:
-              "❌ Failed to save the activation key.",
-            ephemeral: true
-          }
-        );
-      }
-
-      return interaction.reply(
-        {
-          content:
-            `🔐 **Hqbot Monthly Key**\n\n` +
-            `\`${key}\`\n\n` +
-            `⏳ 30 days start when the key is used.`,
-          ephemeral: true
-        }
-      );
-    }
-
-    /* =====================================================
-       LIFETIME KEY
-       ===================================================== */
-
-    if (
-      interaction.commandName ===
-      "genkeylifetime"
-    ) {
-      const key =
-        generateActivationKey();
-
-      activationKeys.set(
-        key,
-        {
-          type:
-            "lifetime",
-          createdAt:
-            Date.now()
-        }
-      );
-
-      const saved =
-        saveActivationKeys();
-
-      if (!saved) {
-        activationKeys.delete(
-          key
-        );
-
-        return interaction.reply(
-          {
-            content:
-              "❌ Failed to save the activation key.",
-            ephemeral: true
-          }
-        );
-      }
-
-      return interaction.reply(
-        {
-          content:
-            `♾️ **Hqbot Lifetime Key**\n\n` +
-            `\`${key}\`\n\n` +
-            `♾️ Never expires.`,
-          ephemeral: true
-        }
-      );
     }
   }
 );
 
 /* =========================================================
-   START DISCORD
+   DISCORD LOGIN
    ========================================================= */
 
 if (
-  process.env
-    .DISCORD_BOT_TOKEN
+  process.env.DISCORD_BOT_TOKEN
 ) {
   discordClient
     .login(
-      process.env
-        .DISCORD_BOT_TOKEN
+      process.env.DISCORD_BOT_TOKEN
     )
     .catch(error => {
       console.error(
@@ -3545,10 +3112,6 @@ app.listen(
     );
 
     console.log(
-      `Auth cache directory: ${AUTH_CACHE_DIR}`
-    );
-
-    console.log(
       `Users loaded: ${users.size}`
     );
 
@@ -3561,48 +3124,15 @@ app.listen(
     );
 
     console.log(
-      "Persistent Microsoft/Xbox Authflow enabled."
+      "Persistent Microsoft/Xbox authentication enabled."
     );
 
     console.log(
-      "Microsoft authentication and Minecraft bot status are separated."
+      "Discord interaction timeout protection enabled."
     );
 
     console.log(
-      "Bot becomes ONLINE only after spawn."
-    );
-
-    console.log(
-      "4-character /snipe command enabled."
+      "4-character /snipe enabled."
     );
   }
 );
-
-Then do exactly this
-
-1. Open Railway → your Hqbot service → "server.js".
-2. Delete the old "server.js" completely.
-3. Paste the full code above.
-4. Save.
-5. Deploy/redeploy.
-6. Don't create another Hqbot account.
-7. Open Hqbot.
-8. Log into your existing account.
-9. Go to Add Microsoft Account.
-10. Complete the Microsoft sign-in.
-
-One important thing, Jan
-
-If Microsoft's page still literally says “Minecraft for Nintendo Switch”, that does not mean Hqbot is making your account a Nintendo account. The current Prismarine library exposes "MinecraftNintendoSwitch" as its known Bedrock title, and its documentation explicitly describes "deviceType" separately from the title.
-
-The part I've changed is the actual auth device type from:
-
-deviceType: "Nintendo"
-
-to:
-
-deviceType: "Win32"
-
-and the Hqbot connection is now considered ONLINE only after Minecraft's "spawn" event, rather than immediately after Microsoft authentication.
-
-So the next test is simple: after deployment, use Add Microsoft Account once and tell me exactly what Hqbot shows after you finish the Microsoft page — Microsoft connected, Bot online, or Bot offline/error.
